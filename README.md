@@ -1,8 +1,8 @@
-# Modern CMake Template
+# Protocon
 
 [![C++ CI with CMake](https://github.com/paakmau/modern-cmake-template/actions/workflows/cmake.yml/badge.svg)](https://github.com/paakmau/modern-cmake-template/actions/workflows/cmake.yml)
 
-This is a modern CMake template, which contains a single library.
+本项目是 Protocon 协议的 C++ 实现，对于发送命令请求与接受命令响应进行了简单的封装。
 
 ## Features
 

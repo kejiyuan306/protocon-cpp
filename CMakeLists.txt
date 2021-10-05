@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.15...3.21)
 
 project(
-  Demo
+  Protocon
   VERSION 0.0.1
-  DESCRIPTION "A simple demo"
+  DESCRIPTION "A C++ implement for Protocon"
   LANGUAGES CXX)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)

@@ -21,13 +21,13 @@
 Clone the repository
 
 ```shell
-$ git clone https://github.com/paakmau/modern-cmake-template
+$ git clone https://github.com/kejiyuan306/protocon-cpp
 ```
 
 Navigate to project directory.
 
 ```shell
-$ cd modern-cpp-template
+$ cd protocon-cpp
 ```
 
 Create a directory for build, and then navigate to it.
@@ -69,14 +69,14 @@ There're two ways to import this library.
 
 Copy the whole project to a directory used for placing external dependencies, such as `extern`.
 
-Put a `add_subdirectory(modern-cpp-template)` in `CMakeLists.txt`.
+Put a `add_subdirectory(protocon-cpp)` in `CMakeLists.txt`.
 
-The library can be linked like `target_link_libraries(<Other Target> PRIVATE Demo::Demo)`.
+The library can be linked like `target_link_libraries(<Other Target> PRIVATE Protocon::Protocon)`.
 
 ### Find package
 
 Install the library as described above.
 
-Put a `find_package(Demo 0.0.1 REQUIRED)` in `CMakeLists.txt`.
+Put a `find_package(Protocon 0.0.1 REQUIRED)` in `CMakeLists.txt`.
 
-Link the library like `target_link_libraries(<Other Target> PRIVATE Demo::Demo)`.
+Link the library like `target_link_libraries(<Other Target> PRIVATE Protocon::Protocon)`.

@@ -3,5 +3,5 @@
 #include <cstdio>
 
 int main() {
-    printf("%s", Protocon::HelloWorld());
+    printf("Hello world!");
 }

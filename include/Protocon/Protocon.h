@@ -2,6 +2,4 @@
 
 namespace Protocon {
 
-const char* HelloWorld();
-
 }  // namespace Protocon

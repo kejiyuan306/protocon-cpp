@@ -1,7 +1,7 @@
-#include <Demo/Demo.h>
+#include <Protocon/Protocon.h>
 
 #include <cstdio>
 
 int main() {
-    printf("%s", Demo::HelloWorld());
+    printf("%s", Protocon::HelloWorld());
 }

@@ -1,6 +1,6 @@
-#include <Demo/Demo.h>
+#include <Protocon/Protocon.h>
 #include <gtest/gtest.h>
 
 TEST(TestSimple, HelloWorldOk) {
-    EXPECT_STREQ("Hello world!", Demo::HelloWorld());
+    EXPECT_STREQ("Hello world!", Protocon::HelloWorld());
 }

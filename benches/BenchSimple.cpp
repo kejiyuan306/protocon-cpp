@@ -1,8 +1,8 @@
-#include <Demo/Demo.h>
+#include <Protocon/Protocon.h>
 #include <benchmark/benchmark.h>
 
 static void BenchSimple(benchmark::State& state) {
     for (auto _ : state)
-        Demo::HelloWorld();
+        Protocon::HelloWorld();
 }
 BENCHMARK(BenchSimple);

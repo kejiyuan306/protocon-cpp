@@ -20,4 +20,14 @@ struct ResponseHeader {
     uint8_t status;
 };
 
+struct Request {
+    uint16_t type;
+    std::string data;
+};
+
+struct Response {
+    uint8_t status;
+    std::string data;
+};
+
 }  // namespace Protocon

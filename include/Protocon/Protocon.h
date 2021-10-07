@@ -60,16 +60,16 @@ class ResponseHandler {
     virtual void handle(const ReceivedResponse& response) = 0;
 };
 
-class Engine {
+class Client {
   public:
     void run(const char* host, uint16_t port);
     void stop();
 
   private:
-    Engine(uint16_t apiVersion,
+    Client(uint16_t apiVersion,
            std::vector<std::unique_ptr<RequestHandler>>&& requestHandlers,
            std::vector<std::unique_ptr<ResponseHandler>>&& responseHandlers);
-    ~Engine();
+    ~Client();
 
     uint16_t apiVersion;
     std::unordered_map<uint16_t, std::unique_ptr<RequestHandler>> requestHandlerMap;
@@ -82,21 +82,21 @@ class Engine {
     std::mutex sentRequestTypeMapMtx;
     std::unordered_map<uint16_t, uint16_t> sentRequestTypeMap;
 
-    friend class EngineBuilder;
+    friend class ClientBuilder;
 };
 
-class EngineBuilder {
+class ClientBuilder {
   public:
-    EngineBuilder(uint16_t apiVersion) : apiVersion(apiVersion) {}
-    EngineBuilder& with(std::unique_ptr<RequestHandler>&& handler) {
+    ClientBuilder(uint16_t apiVersion) : apiVersion(apiVersion) {}
+    ClientBuilder& with(std::unique_ptr<RequestHandler>&& handler) {
         requestHandlers.emplace_back(std::move(handler));
         return *this;
     }
-    EngineBuilder& with(std::unique_ptr<ResponseHandler>&& handler) {
+    ClientBuilder& with(std::unique_ptr<ResponseHandler>&& handler) {
         responseHandlers.emplace_back(std::move(handler));
         return *this;
     }
-    Engine build() { return Engine(apiVersion, std::move(requestHandlers), std::move(responseHandlers)); }
+    Client build() { return Client(apiVersion, std::move(requestHandlers), std::move(responseHandlers)); }
 
   private:
     uint16_t apiVersion;

@@ -8,7 +8,7 @@
 
 namespace Protocon {
 
-void Engine::run(const char* host, uint16_t port) {
+void Client::run(const char* host, uint16_t port) {
     auto conn = std::make_unique<sockpp::tcp_connector>();
     if (!conn->connect(sockpp::inet_address(host, port)))
         printf("Connect failed, details: %s\n", conn->last_error_str().c_str());
@@ -95,11 +95,11 @@ void Engine::run(const char* host, uint16_t port) {
     });
 }
 
-void Engine::stop() {
+void Client::stop() {
     socket->shutdown();
 }
 
-Engine::Engine(uint16_t apiVersion,
+Client::Client(uint16_t apiVersion,
                std::vector<std::unique_ptr<RequestHandler>>&& requestHandlers,
                std::vector<std::unique_ptr<ResponseHandler>>&& responseHandlers)
     : apiVersion(apiVersion) {
@@ -109,6 +109,6 @@ Engine::Engine(uint16_t apiVersion,
         responseHandlerMap.emplace(h->type(), std::move(h));
 }
 
-Engine::~Engine() = default;
+Client::~Client() = default;
 
 }  // namespace Protocon

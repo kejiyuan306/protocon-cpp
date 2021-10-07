@@ -19,7 +19,7 @@ void Client::run(const char* host, uint16_t port) {
                                 responseHandlerMap = &this->responseHandlerMap,
                                 requestTypeMapMtx = &this->sentRequestTypeMapMtx,
                                 requestTypeMap = &this->sentRequestTypeMap]() mutable {
-        std::array<char, 1024> buf;
+        std::array<char8_t, 1024> buf;
 
         while (true) {
             uint16_t cmdId;
@@ -56,7 +56,7 @@ void Client::run(const char* host, uint16_t port) {
                     .time = time,
                     .apiVersion = apiVersion,
                     .type = type,
-                    .data = std::string(buf.data(), length),
+                    .data = std::u8string(buf.data(), length),
                 });
             } else if (cmdId < 0) {
                 // 响应。
@@ -84,7 +84,7 @@ void Client::run(const char* host, uint16_t port) {
                     .commandId = cmdId,
                     .time = time,
                     .status = status,
-                    .data = std::string(buf.data(), length),
+                    .data = std::u8string(buf.data(), length),
                 });
             } else {
                 printf("Fatal error, please contact to developers.");

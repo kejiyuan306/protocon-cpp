@@ -6,12 +6,12 @@ project(
   DESCRIPTION "A C++ implement for Protocon"
   LANGUAGES CXX)
 
+include(FetchContent)
+
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(CMAKE_CXX_STANDARD 20)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
   set(CMAKE_CXX_EXTENSIONS OFF)
-
-  include(FetchContent)
 
   FetchContent_Declare(
     googletest
@@ -48,10 +48,22 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   add_subdirectory(examples)
 endif()
 
+FetchContent_Declare(
+  sockpp
+  GIT_REPOSITORY https://github.com/fpagliughi/sockpp
+  GIT_TAG v0.7)
+set(SOCKPP_BUILD_SHARED
+    OFF
+    CACHE BOOL "" FORCE)
+set(SOCKPP_BUILD_STATIC
+    ON
+    CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(sockpp)
+
 file(GLOB HEADER_LIST include/*.h)
 aux_source_directory(src SOURCE_LIST)
 
-add_library(${PROJECT_NAME} ${SOURCE_LIST} ${HEADER_LIST})
+add_library(${PROJECT_NAME} STATIC ${SOURCE_LIST} ${HEADER_LIST})
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
@@ -59,6 +71,9 @@ target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:include>
                          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+
+# Use BUILD_INTERFACE to avoid exporting.
+target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:sockpp-static>)
 
 install(
   TARGETS ${PROJECT_NAME}

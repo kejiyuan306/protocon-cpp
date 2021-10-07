@@ -2,9 +2,18 @@
 
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
+#include <unordered_map>
 #include <utility>
 #include <vector>
+
+namespace sockpp {
+
+class stream_socket;
+
+}
 
 namespace Protocon {
 
@@ -52,15 +61,26 @@ class ResponseHandler {
 };
 
 class Engine {
+  public:
+    void run(const char* host, uint16_t port);
+    void stop();
+
   private:
     Engine(uint16_t apiVersion,
            std::vector<std::unique_ptr<RequestHandler>>&& requestHandlers,
-           std::vector<std::unique_ptr<ResponseHandler>>&& responseHandlers)
-        : apiVersion(apiVersion), requestHandlers(std::move(requestHandlers)), responseHandlers(std::move(responseHandlers)) {}
+           std::vector<std::unique_ptr<ResponseHandler>>&& responseHandlers);
+    ~Engine();
 
     uint16_t apiVersion;
-    std::vector<std::unique_ptr<RequestHandler>> requestHandlers;
-    std::vector<std::unique_ptr<ResponseHandler>> responseHandlers;
+    std::unordered_map<uint16_t, std::unique_ptr<RequestHandler>> requestHandlerMap;
+    std::unordered_map<uint16_t, std::unique_ptr<ResponseHandler>> responseHandlerMap;
+
+    std::unique_ptr<sockpp::stream_socket> socket;
+
+    std::thread readerHandle;
+
+    std::mutex sentRequestTypeMapMtx;
+    std::unordered_map<uint16_t, uint16_t> sentRequestTypeMap;
 
     friend class EngineBuilder;
 };

@@ -1,6 +1,8 @@
 #include <Protocon/Protocon.h>
 
+#include <chrono>
 #include <cstdio>
+#include <thread>
 
 bool stop_flag = false;
 
@@ -26,5 +28,7 @@ int main() {
 
     while (!stop_flag) {
         client.poll();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 }

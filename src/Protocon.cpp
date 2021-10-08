@@ -16,15 +16,15 @@ void Client::run(const char* host, uint16_t port) {
     auto conn = std::make_unique<sockpp::tcp_connector>();
     if (!conn->connect(sockpp::inet_address(host, port)))
         printf("Connect failed, details: %s\n", conn->last_error_str().c_str());
-    socket = std::move(conn);
+    mSocket = std::move(conn);
 
-    requestQueue = std::make_unique<ThreadSafeQueue<Request>>();
-    sentRequestTypeMap = std::make_unique<ThreadSafeUnorderedMap<uint16_t, uint16_t>>();
+    mRequestQueue = std::make_unique<ThreadSafeQueue<Request>>();
+    mSentRequestTypeMap = std::make_unique<ThreadSafeUnorderedMap<uint16_t, uint16_t>>();
 
-    readerHandle = std::thread([socket = socket->clone(),
-                                requestHandlerMap = &this->requestHandlerMap,
-                                responseHandlerMap = &this->responseHandlerMap,
-                                requestTypeMap = &this->sentRequestTypeMap]() mutable {
+    mReaderHandle = std::thread([socket = mSocket->clone(),
+                                 requestHandlerMap = &mRequestHandlerMap,
+                                 responseHandlerMap = &mResponseHandlerMap,
+                                 requestTypeMap = &mSentRequestTypeMap]() mutable {
         std::array<char8_t, 1024> buf;
 
         while (true) {
@@ -96,10 +96,10 @@ void Client::run(const char* host, uint16_t port) {
         printf("Disconnected, details: %s\n", socket.last_error_str().c_str());
     });
 
-    writerHandle = std::thread([socket = socket->clone(),
-                                requestQueue = &requestQueue,
-                                gatewayId = gatewayId,
-                                apiVersion = apiVersion]() mutable {
+    mWriterHandle = std::thread([socket = mSocket->clone(),
+                                 requestQueue = &mRequestQueue,
+                                 gatewayId = mGatewayId,
+                                 apiVersion = mApiVersion]() mutable {
         uint16_t cmdIdCounter = 0;
         const uint16_t maxCmdId = 0x7fff;
 
@@ -138,24 +138,24 @@ void Client::run(const char* host, uint16_t port) {
 }
 
 void Client::stop() {
-    socket->shutdown();
+    mSocket->shutdown();
 
-    readerHandle.join();
-    writerHandle.join();
+    mReaderHandle.join();
+    mWriterHandle.join();
 }
 
 void Client::send(Request&& r) {
-    requestQueue->emplace(std::move(r));
+    mRequestQueue->emplace(std::move(r));
 }
 
 Client::Client(uint16_t apiVersion, uint64_t gatewayId,
                std::vector<std::unique_ptr<RequestHandler>>&& requestHandlers,
                std::vector<std::unique_ptr<ResponseHandler>>&& responseHandlers)
-    : apiVersion(apiVersion), gatewayId(gatewayId) {
+    : mApiVersion(apiVersion), mGatewayId(gatewayId) {
     for (auto&& h : requestHandlers)
-        requestHandlerMap.emplace(h->type(), std::move(h));
+        mRequestHandlerMap.emplace(h->type(), std::move(h));
     for (auto&& h : responseHandlers)
-        responseHandlerMap.emplace(h->type(), std::move(h));
+        mResponseHandlerMap.emplace(h->type(), std::move(h));
 }
 
 Client::~Client() = default;

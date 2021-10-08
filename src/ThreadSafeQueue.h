@@ -11,28 +11,28 @@ template <typename T>
 class ThreadSafeQueue {
   public:
     bool empty() {
-        std::lock_guard<std::mutex> lock(mtx);
-        return q.empty();
+        std::lock_guard<std::mutex> lock(mMtx);
+        return mQueue.empty();
     }
 
     const T& front() {
-        std::lock_guard<std::mutex> lock(mtx);
-        return q.front();
+        std::lock_guard<std::mutex> lock(mMtx);
+        return mQueue.front();
     }
 
     void emplace(T&& v) {
-        std::lock_guard<std::mutex> lock(mtx);
-        q.emplace(std::move(v));
+        std::lock_guard<std::mutex> lock(mMtx);
+        mQueue.emplace(std::move(v));
     }
 
     void pop() {
-        std::lock_guard<std::mutex> lock(mtx);
-        q.pop();
+        std::lock_guard<std::mutex> lock(mMtx);
+        mQueue.pop();
     }
 
   private:
-    std::mutex mtx;
-    std::queue<T> q;
+    std::mutex mMtx;
+    std::queue<T> mQueue;
 };
 
 }  // namespace Protocon

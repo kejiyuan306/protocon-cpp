@@ -81,46 +81,46 @@ class Client {
            std::vector<std::unique_ptr<ResponseHandler>>&& responseHandlers);
     ~Client();
 
-    uint64_t gatewayId;
-    uint16_t apiVersion;
-    std::unordered_map<uint16_t, std::unique_ptr<RequestHandler>> requestHandlerMap;
-    std::unordered_map<uint16_t, std::unique_ptr<ResponseHandler>> responseHandlerMap;
+    uint64_t mGatewayId;
+    uint16_t mApiVersion;
+    std::unordered_map<uint16_t, std::unique_ptr<RequestHandler>> mRequestHandlerMap;
+    std::unordered_map<uint16_t, std::unique_ptr<ResponseHandler>> mResponseHandlerMap;
 
-    std::unique_ptr<sockpp::stream_socket> socket;
+    std::unique_ptr<sockpp::stream_socket> mSocket;
 
-    std::thread readerHandle;
-    std::thread writerHandle;
+    std::thread mReaderHandle;
+    std::thread mWriterHandle;
 
-    std::unique_ptr<ThreadSafeQueue<Request>> requestQueue;
-    std::unique_ptr<ThreadSafeUnorderedMap<uint16_t, uint16_t>> sentRequestTypeMap;
+    std::unique_ptr<ThreadSafeQueue<Request>> mRequestQueue;
+    std::unique_ptr<ThreadSafeUnorderedMap<uint16_t, uint16_t>> mSentRequestTypeMap;
 
     friend class ClientBuilder;
 };
 
 class ClientBuilder {
   public:
-    ClientBuilder(uint16_t apiVersion) : apiVersion(apiVersion) {}
+    ClientBuilder(uint16_t apiVersion) : mApiVersion(apiVersion) {}
     ClientBuilder& withGatewayId(uint64_t gatewayId) {
-        this->gatewayId = gatewayId;
+        this->mGatewayId = gatewayId;
         return *this;
     }
     ClientBuilder& with(std::unique_ptr<RequestHandler>&& handler) {
-        requestHandlers.emplace_back(std::move(handler));
+        mRequestHandlers.emplace_back(std::move(handler));
         return *this;
     }
     ClientBuilder& with(std::unique_ptr<ResponseHandler>&& handler) {
-        responseHandlers.emplace_back(std::move(handler));
+        mResponseHandlers.emplace_back(std::move(handler));
         return *this;
     }
-    Client build() { return Client(apiVersion, gatewayId, std::move(requestHandlers), std::move(responseHandlers)); }
+    Client build() { return Client(mApiVersion, mGatewayId, std::move(mRequestHandlers), std::move(mResponseHandlers)); }
 
   private:
-    uint16_t apiVersion;
+    uint16_t mApiVersion;
 
-    uint64_t gatewayId = 0;
+    uint64_t mGatewayId = 0;
 
-    std::vector<std::unique_ptr<RequestHandler>> requestHandlers;
-    std::vector<std::unique_ptr<ResponseHandler>> responseHandlers;
+    std::vector<std::unique_ptr<RequestHandler>> mRequestHandlers;
+    std::vector<std::unique_ptr<ResponseHandler>> mResponseHandlers;
 };
 
 }  // namespace Protocon

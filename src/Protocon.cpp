@@ -36,6 +36,7 @@ void Client::run(const char* host, uint16_t port) {
         while (true) {
             uint16_t cmdId;
             if (!~socket.read_n(&cmdId, sizeof(cmdId))) break;
+            cmdId = Util::BigEndian(cmdId);
 
             if ((cmdId & 0x8000) == 0 && cmdId != 0) {
                 // 请求。

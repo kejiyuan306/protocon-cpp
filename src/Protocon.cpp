@@ -78,7 +78,7 @@ void Client::run(const char* host, uint16_t port) {
             } else if ((cmdId & 0x8000) == 0x8000 && cmdId != 0x8000) {
                 // 响应。
 
-                cmdId = -cmdId;
+                cmdId ^= 0x8000;
 
                 uint64_t time;
                 if (!~socket.read_n(&time, sizeof(time))) break;

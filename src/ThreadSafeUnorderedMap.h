@@ -9,7 +9,7 @@ namespace Protocon {
 template <typename K, typename T>
 class ThreadSafeUnorderedMap {
   public:
-    template <class... Args>
+    template <typename... Args>
     void emplace(Args&&... args) {
         std::lock_guard<std::mutex> lock(mMtx);
         mMap.emplace(std::forward<Args>(args)...);

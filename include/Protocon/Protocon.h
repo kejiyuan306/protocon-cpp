@@ -73,6 +73,7 @@ class Client {
     void run(const char* host, uint16_t port);
     void stop();
 
+    void poll();
     void send(SentRequest&& r);
 
   private:
@@ -90,6 +91,10 @@ class Client {
 
     std::thread mReaderHandle;
     std::thread mWriterHandle;
+
+    // Maintained by Reader
+    std::unique_ptr<ThreadSafeQueue<ReceivedRequest>> mReceivedRequestQueue;
+    std::unique_ptr<ThreadSafeQueue<ReceivedResponse>> mReceivedResponseQueue;
 
     // Maintained by Writer
     std::unique_ptr<ThreadSafeQueue<SentRequest>> mSentRequestQueue;

@@ -73,6 +73,8 @@ class Client {
   public:
     ~Client();
 
+    bool stopFlag() const { return mStopFlag; }
+
     void run(const char* host, uint16_t port);
     void stop();
 

@@ -104,13 +104,13 @@ void Client::run(const char* host, uint16_t port) {
                     .data = std::u8string(buf.data(), length),
                 });
             } else {
-                std::printf("Fatal error, please contact to developers.");
+                std::printf("Fatal error, please contact to developers.\n");
                 return;
             }
         }
 
         if (*stopFlag)
-            std::printf("Reader closed by shutdown");
+            std::printf("Reader closed by shutdown\n");
         else
             std::printf("Reader closed, details: %s\n", socket.last_error_str().c_str());
     });
@@ -176,7 +176,7 @@ void Client::run(const char* host, uint16_t port) {
         }
 
         if (*stopFlag)
-            std::printf("Writer closed by shutdown");
+            std::printf("Writer closed by shutdown\n");
         else
             std::printf("Write closed, details: %s\n", socket.last_error_str().c_str());
     });

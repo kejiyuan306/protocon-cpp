@@ -98,6 +98,7 @@ class Client {
 
     // Maintained by Writer
     std::unique_ptr<ThreadSafeQueue<SentRequest>> mSentRequestQueue;
+    std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, SentResponse>>> mSentResponseQueue;
     std::unique_ptr<ThreadSafeUnorderedMap<uint16_t, uint16_t>> mSentRequestTypeMap;
 
     friend class ClientBuilder;

@@ -22,6 +22,7 @@ void Client::run(const char* host, uint16_t port) {
     mReceivedResponseQueue = std::make_unique<ThreadSafeQueue<ReceivedResponse>>();
 
     mSentRequestQueue = std::make_unique<ThreadSafeQueue<SentRequest>>();
+    mSentResponseQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, SentResponse>>>();
     mSentRequestTypeMap = std::make_unique<ThreadSafeUnorderedMap<uint16_t, uint16_t>>();
 
     mReaderHandle = std::thread([socket = mSocket->clone(),
@@ -98,6 +99,7 @@ void Client::run(const char* host, uint16_t port) {
 
     mWriterHandle = std::thread([socket = mSocket->clone(),
                                  requestQueue = &mSentRequestQueue,
+                                 responseQueue = &mSentResponseQueue,
                                  requestTypeMap = &mSentRequestTypeMap,
                                  gatewayId = mGatewayId,
                                  apiVersion = mApiVersion]() mutable {
@@ -135,6 +137,23 @@ void Client::run(const char* host, uint16_t port) {
                 if (!~socket.write_n(r.data.data(), length)) break;
             }
 
+            if (!(*responseQueue)->empty()) {
+                auto [cmdId, r] = (*responseQueue)->pop();
+
+                cmdId &= 0x8000;
+                if (!~socket.write_n(&cmdId, sizeof(cmdId))) break;
+
+                uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                if (!~socket.write_n(&time, sizeof(time))) break;
+
+                if (!~socket.write_n(&r.status, sizeof(r.status))) break;
+
+                uint32_t length = r.data.length();
+                if (!~socket.write_n(&length, sizeof(length))) break;
+
+                if (!~socket.write_n(r.data.data(), length)) break;
+            }
+
             std::this_thread::sleep_for(std::chrono::milliseconds(400));
         }
         printf("Disconnected, details: %s\n", socket.last_error_str().c_str());
@@ -152,7 +171,7 @@ void Client::poll() {
     while (!mReceivedRequestQueue->empty()) {
         ReceivedRequest r = mReceivedRequestQueue->pop();
 
-        mRequestHandlerMap.at(r.type)->handle(r);
+        mSentResponseQueue->emplace(std::make_pair(r.commandId, mRequestHandlerMap.at(r.type)->handle(r)));
     }
 
     while (!mReceivedResponseQueue->empty()) {

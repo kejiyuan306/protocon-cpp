@@ -179,7 +179,7 @@ void Client::send(SentRequest&& r) {
     if (mCmdIdCounter > cMaxCmdId)
         mCmdIdCounter = 1;
 
-    mSentRequestQueue->emplace(std::make_pair(cmdId, r));
+    mSentRequestQueue->emplace(std::make_pair(cmdId, std::move(r)));
 }
 
 Client::Client(uint16_t apiVersion, uint64_t gatewayId,

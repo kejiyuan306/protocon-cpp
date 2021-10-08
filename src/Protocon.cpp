@@ -13,6 +13,8 @@
 
 namespace Protocon {
 
+Client::~Client() = default;
+
 void Client::run(const char* host, uint16_t port) {
     auto conn = std::make_unique<sockpp::tcp_connector>();
     if (!conn->connect(sockpp::inet_address(host, port)))
@@ -207,7 +209,5 @@ Client::Client(uint16_t apiVersion, uint64_t gatewayId,
     for (auto&& h : responseHandlers)
         mResponseHandlerMap.emplace(h->type(), std::move(h));
 }
-
-Client::~Client() = default;
 
 }  // namespace Protocon

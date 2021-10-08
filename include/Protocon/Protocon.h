@@ -70,6 +70,8 @@ class ResponseHandler {
 
 class Client {
   public:
+    ~Client();
+
     void run(const char* host, uint16_t port);
     void stop();
 
@@ -80,7 +82,6 @@ class Client {
     Client(uint16_t apiVersion, uint64_t gatewayId,
            std::vector<std::unique_ptr<RequestHandler>>&& requestHandlers,
            std::vector<std::unique_ptr<ResponseHandler>>&& responseHandlers);
-    ~Client();
 
     uint64_t mGatewayId;
     uint16_t mApiVersion;

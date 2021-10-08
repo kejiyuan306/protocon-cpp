@@ -98,10 +98,10 @@ void Client::stop() {
     socket->shutdown();
 }
 
-Client::Client(uint16_t apiVersion,
+Client::Client(uint16_t apiVersion, uint64_t gatewayId,
                std::vector<std::unique_ptr<RequestHandler>>&& requestHandlers,
                std::vector<std::unique_ptr<ResponseHandler>>&& responseHandlers)
-    : apiVersion(apiVersion) {
+    : apiVersion(apiVersion), gatewayId(gatewayId) {
     for (auto&& h : requestHandlers)
         requestHandlerMap.emplace(h->type(), std::move(h));
     for (auto&& h : responseHandlers)

@@ -69,11 +69,12 @@ class Client {
     void stop();
 
   private:
-    Client(uint16_t apiVersion,
+    Client(uint16_t apiVersion, uint64_t gatewayId,
            std::vector<std::unique_ptr<RequestHandler>>&& requestHandlers,
            std::vector<std::unique_ptr<ResponseHandler>>&& responseHandlers);
     ~Client();
 
+    uint64_t gatewayId;
     uint16_t apiVersion;
     std::unordered_map<uint16_t, std::unique_ptr<RequestHandler>> requestHandlerMap;
     std::unordered_map<uint16_t, std::unique_ptr<ResponseHandler>> responseHandlerMap;
@@ -90,6 +91,10 @@ class Client {
 class ClientBuilder {
   public:
     ClientBuilder(uint16_t apiVersion) : apiVersion(apiVersion) {}
+    ClientBuilder& withGatewayId(uint64_t gatewayId) {
+        this->gatewayId = gatewayId;
+        return *this;
+    }
     ClientBuilder& with(std::unique_ptr<RequestHandler>&& handler) {
         requestHandlers.emplace_back(std::move(handler));
         return *this;
@@ -98,10 +103,13 @@ class ClientBuilder {
         responseHandlers.emplace_back(std::move(handler));
         return *this;
     }
-    Client build() { return Client(apiVersion, std::move(requestHandlers), std::move(responseHandlers)); }
+    Client build() { return Client(apiVersion, gatewayId, std::move(requestHandlers), std::move(responseHandlers)); }
 
   private:
     uint16_t apiVersion;
+
+    uint64_t gatewayId = 0;
+
     std::vector<std::unique_ptr<RequestHandler>> requestHandlers;
     std::vector<std::unique_ptr<ResponseHandler>> responseHandlers;
 };

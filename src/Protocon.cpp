@@ -16,6 +16,8 @@ namespace Protocon {
 Client::~Client() = default;
 
 void Client::run(const char* host, uint16_t port) {
+    mStopFlag = false;
+
     auto conn = std::make_unique<sockpp::tcp_connector>();
     if (!conn->connect(sockpp::inet_address(host, port)))
         std::printf("Connect failed, details: %s\n", conn->last_error_str().c_str());
@@ -28,12 +30,13 @@ void Client::run(const char* host, uint16_t port) {
     mSentResponseQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, SentResponse>>>();
     mSentRequestTypeMap = std::make_unique<ThreadSafeUnorderedMap<uint16_t, uint16_t>>();
 
-    mReaderHandle = std::thread([socket = mSocket->clone(),
+    mReaderHandle = std::thread([stopFlag = &mStopFlag,
+                                 socket = mSocket->clone(),
                                  requestQueue = &mReceivedRequestQueue,
                                  responseQueue = &mReceivedResponseQueue]() mutable {
         std::array<char8_t, 1024> buf;
 
-        while (true) {
+        while (!*stopFlag) {
             uint16_t cmdId;
             if (!~socket.read_n(&cmdId, sizeof(cmdId))) break;
             cmdId = Util::BigEndian(cmdId);
@@ -105,16 +108,21 @@ void Client::run(const char* host, uint16_t port) {
                 return;
             }
         }
-        std::printf("Disconnected, details: %s\n", socket.last_error_str().c_str());
+
+        if (*stopFlag)
+            std::printf("Reader closed by shutdown");
+        else
+            std::printf("Reader closed, details: %s\n", socket.last_error_str().c_str());
     });
 
-    mWriterHandle = std::thread([socket = mSocket->clone(),
+    mWriterHandle = std::thread([stopFlag = &mStopFlag,
+                                 socket = mSocket->clone(),
                                  requestQueue = &mSentRequestQueue,
                                  responseQueue = &mSentResponseQueue,
                                  requestTypeMap = &mSentRequestTypeMap,
                                  gatewayId = mGatewayId,
                                  apiVersion = mApiVersion]() mutable {
-        while (true) {
+        while (!*stopFlag) {
             if (!(*requestQueue)->empty()) {
                 auto [cmdId, r] = (*requestQueue)->pop();
 
@@ -166,11 +174,17 @@ void Client::run(const char* host, uint16_t port) {
 
             std::this_thread::sleep_for(std::chrono::milliseconds(400));
         }
-        std::printf("Disconnected, details: %s\n", socket.last_error_str().c_str());
+
+        if (*stopFlag)
+            std::printf("Writer closed by shutdown");
+        else
+            std::printf("Write closed, details: %s\n", socket.last_error_str().c_str());
     });
 }
 
 void Client::stop() {
+    mStopFlag = true;
+
     mSocket->shutdown();
 
     mReaderHandle.join();

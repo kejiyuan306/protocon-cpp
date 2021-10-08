@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -87,6 +88,8 @@ class Client {
     uint16_t mApiVersion;
     std::unordered_map<uint16_t, std::unique_ptr<RequestHandler>> mRequestHandlerMap;
     std::unordered_map<uint16_t, std::unique_ptr<ResponseHandler>> mResponseHandlerMap;
+
+    std::atomic_bool mStopFlag;
 
     std::unique_ptr<sockpp::stream_socket> mSocket;
 

@@ -86,7 +86,6 @@ void Client::run(const char* host, uint16_t port) {
 
                 uint8_t status;
                 if (!~socket.read_n(&status, sizeof(status))) break;
-                status = Util::BigEndian(status);
 
                 uint32_t length;
                 if (!~socket.read_n(&length, sizeof(length))) break;

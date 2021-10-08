@@ -17,6 +17,9 @@ class stream_socket;
 
 namespace Protocon {
 
+template <typename T>
+class ThreadSafeQueue;
+
 template <typename K, typename T>
 class ThreadSafeUnorderedMap;
 
@@ -70,6 +73,8 @@ class Client {
     void run(const char* host, uint16_t port);
     void stop();
 
+    void send(Request&& r);
+
   private:
     Client(uint16_t apiVersion, uint64_t gatewayId,
            std::vector<std::unique_ptr<RequestHandler>>&& requestHandlers,
@@ -84,7 +89,9 @@ class Client {
     std::unique_ptr<sockpp::stream_socket> socket;
 
     std::thread readerHandle;
+    std::thread writerHandle;
 
+    std::unique_ptr<ThreadSafeQueue<Request>> requestQueue;
     std::unique_ptr<ThreadSafeUnorderedMap<uint16_t, uint16_t>> sentRequestTypeMap;
 
     friend class ClientBuilder;

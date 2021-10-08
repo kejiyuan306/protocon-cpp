@@ -2,10 +2,12 @@
 #include <sockpp/tcp_connector.h>
 
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <cstdio>
 #include <thread>
 
+#include "ThreadSafeQueue.h"
 #include "ThreadSafeUnorderedMap.h"
 
 namespace Protocon {
@@ -16,6 +18,7 @@ void Client::run(const char* host, uint16_t port) {
         printf("Connect failed, details: %s\n", conn->last_error_str().c_str());
     socket = std::move(conn);
 
+    requestQueue = std::make_unique<ThreadSafeQueue<Request>>();
     sentRequestTypeMap = std::make_unique<ThreadSafeUnorderedMap<uint16_t, uint16_t>>();
 
     readerHandle = std::thread([socket = socket->clone(),
@@ -92,10 +95,56 @@ void Client::run(const char* host, uint16_t port) {
         }
         printf("Disconnected, details: %s\n", socket.last_error_str().c_str());
     });
+
+    writerHandle = std::thread([socket = socket->clone(),
+                                requestQueue = &requestQueue,
+                                gatewayId = gatewayId,
+                                apiVersion = apiVersion]() mutable {
+        uint16_t cmdIdCounter = 0;
+        const uint16_t maxCmdId = 0x7fff;
+
+        // TODO: 处理字节序问题。
+        while (true) {
+            if (!(*requestQueue)->empty()) {
+                const Request& r = (*requestQueue)->front();
+
+                if (cmdIdCounter == maxCmdId)
+                    cmdIdCounter = 0;
+                cmdIdCounter++;
+
+                if (!~socket.write_n(&cmdIdCounter, sizeof(cmdIdCounter))) break;
+
+                if (!~socket.write_n(&gatewayId, sizeof(gatewayId))) break;
+
+                if (!~socket.write_n(&r.clientId, sizeof(r.clientId))) break;
+
+                uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                if (!~socket.write_n(&time, sizeof(time))) break;
+
+                if (!~socket.write_n(&apiVersion, sizeof(apiVersion))) break;
+
+                if (!~socket.write_n(&r.type, sizeof(r.type))) break;
+
+                uint32_t length = r.data.length();
+                if (!~socket.write_n(&length, sizeof(length))) break;
+
+                if (!~socket.write_n(r.data.data(), length)) break;
+
+                (*requestQueue)->pop();
+            }
+        }
+        printf("Disconnected, details: %s\n", socket.last_error_str().c_str());
+    });
 }
 
 void Client::stop() {
     socket->shutdown();
+
+    writerHandle.join();
+}
+
+void Client::send(Request&& r) {
+    requestQueue->emplace(std::move(r));
 }
 
 Client::Client(uint16_t apiVersion, uint64_t gatewayId,

@@ -15,19 +15,17 @@ class ThreadSafeQueue {
         return mQueue.empty();
     }
 
-    const T& front() {
+    template <typename... Args>
+    void emplace(Args&&... args) {
         std::lock_guard<std::mutex> lock(mMtx);
-        return mQueue.front();
+        mQueue.emplace(std::forward<Args>(args)...);
     }
 
-    void emplace(T&& v) {
+    T pop() {
         std::lock_guard<std::mutex> lock(mMtx);
-        mQueue.emplace(std::move(v));
-    }
-
-    void pop() {
-        std::lock_guard<std::mutex> lock(mMtx);
+        T v = mQueue.front();
         mQueue.pop();
+        return v;
     }
 
   private:

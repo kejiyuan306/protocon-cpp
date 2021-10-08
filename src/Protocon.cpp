@@ -107,13 +107,14 @@ void Client::run(const char* host, uint16_t port) {
         // TODO: 处理字节序问题。
         while (true) {
             if (!(*requestQueue)->empty()) {
-                const SentRequest& r = (*requestQueue)->front();
+                SentRequest r = (*requestQueue)->pop();
 
                 if (cmdIdCounter == maxCmdId)
                     cmdIdCounter = 0;
                 cmdIdCounter++;
-
                 const uint16_t cmdId = cmdIdCounter;
+
+                (*requestTypeMap)->emplace(cmdId, r.type);
 
                 if (!~socket.write_n(&cmdId, sizeof(cmdId))) break;
 
@@ -132,10 +133,6 @@ void Client::run(const char* host, uint16_t port) {
                 if (!~socket.write_n(&length, sizeof(length))) break;
 
                 if (!~socket.write_n(r.data.data(), length)) break;
-
-                (*requestTypeMap)->emplace(cmdId, r.type);
-
-                (*requestQueue)->pop();
             }
         }
         printf("Disconnected, details: %s\n", socket.last_error_str().c_str());

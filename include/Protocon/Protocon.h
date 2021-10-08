@@ -104,11 +104,11 @@ class ClientBuilder {
         this->mGatewayId = gatewayId;
         return *this;
     }
-    ClientBuilder& with(std::unique_ptr<RequestHandler>&& handler) {
+    ClientBuilder& withRequestHandler(std::unique_ptr<RequestHandler>&& handler) {
         mRequestHandlers.emplace_back(std::move(handler));
         return *this;
     }
-    ClientBuilder& with(std::unique_ptr<ResponseHandler>&& handler) {
+    ClientBuilder& withResponseHandler(std::unique_ptr<ResponseHandler>&& handler) {
         mResponseHandlers.emplace_back(std::move(handler));
         return *this;
     }

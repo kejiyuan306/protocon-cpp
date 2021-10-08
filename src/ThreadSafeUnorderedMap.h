@@ -9,9 +9,10 @@ namespace Protocon {
 template <typename K, typename T>
 class ThreadSafeUnorderedMap {
   public:
-    void emplace(K&& k, T&& v) {
+    template <class... Args>
+    void emplace(Args&&... args) {
         std::lock_guard<std::mutex> lock(mMtx);
-        mMap.emplace(k, v);
+        mMap.emplace(std::forward<Args>(args)...);
     }
 
     void erase(const K& k) {

@@ -48,6 +48,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   add_subdirectory(examples)
 endif()
 
+find_package(Threads REQUIRED)
+
 FetchContent_Declare(
   sockpp
   GIT_REPOSITORY https://github.com/fpagliughi/sockpp
@@ -73,7 +75,7 @@ target_include_directories(
                          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 # Use BUILD_INTERFACE to avoid exporting.
-target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:sockpp-static>)
+target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads $<BUILD_INTERFACE:sockpp-static>)
 
 install(
   TARGETS ${PROJECT_NAME}

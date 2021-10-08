@@ -134,6 +134,8 @@ void Client::run(const char* host, uint16_t port) {
 
                 if (!~socket.write_n(r.data.data(), length)) break;
             }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(400));
         }
         printf("Disconnected, details: %s\n", socket.last_error_str().c_str());
     });

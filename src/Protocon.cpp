@@ -140,6 +140,7 @@ void Client::run(const char* host, uint16_t port) {
 void Client::stop() {
     socket->shutdown();
 
+    readerHandle.join();
     writerHandle.join();
 }
 

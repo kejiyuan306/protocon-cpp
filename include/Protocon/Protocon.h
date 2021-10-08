@@ -40,13 +40,13 @@ struct ReceivedResponse {
     std::u8string data;
 };
 
-struct Request {
+struct SentRequest {
     uint64_t clientId;
     uint16_t type;
     std::u8string data;
 };
 
-struct Response {
+struct SentResponse {
     uint64_t clientId;
     uint8_t status;
     std::u8string data;
@@ -57,7 +57,7 @@ class RequestHandler {
     virtual ~RequestHandler(){};
 
     virtual uint16_t type() = 0;
-    virtual Response handle(const ReceivedRequest& request) = 0;
+    virtual SentResponse handle(const ReceivedRequest& request) = 0;
 };
 
 class ResponseHandler {
@@ -73,7 +73,7 @@ class Client {
     void run(const char* host, uint16_t port);
     void stop();
 
-    void send(Request&& r);
+    void send(SentRequest&& r);
 
   private:
     Client(uint16_t apiVersion, uint64_t gatewayId,
@@ -91,7 +91,8 @@ class Client {
     std::thread mReaderHandle;
     std::thread mWriterHandle;
 
-    std::unique_ptr<ThreadSafeQueue<Request>> mRequestQueue;
+    // Maintained by Writer
+    std::unique_ptr<ThreadSafeQueue<SentRequest>> mSentRequestQueue;
     std::unique_ptr<ThreadSafeUnorderedMap<uint16_t, uint16_t>> mSentRequestTypeMap;
 
     friend class ClientBuilder;

@@ -18,7 +18,7 @@ void Client::run(const char* host, uint16_t port) {
         printf("Connect failed, details: %s\n", conn->last_error_str().c_str());
     mSocket = std::move(conn);
 
-    mRequestQueue = std::make_unique<ThreadSafeQueue<Request>>();
+    mSentRequestQueue = std::make_unique<ThreadSafeQueue<SentRequest>>();
     mSentRequestTypeMap = std::make_unique<ThreadSafeUnorderedMap<uint16_t, uint16_t>>();
 
     mReaderHandle = std::thread([socket = mSocket->clone(),
@@ -97,7 +97,7 @@ void Client::run(const char* host, uint16_t port) {
     });
 
     mWriterHandle = std::thread([socket = mSocket->clone(),
-                                 requestQueue = &mRequestQueue,
+                                 requestQueue = &mSentRequestQueue,
                                  gatewayId = mGatewayId,
                                  apiVersion = mApiVersion]() mutable {
         uint16_t cmdIdCounter = 0;
@@ -106,7 +106,7 @@ void Client::run(const char* host, uint16_t port) {
         // TODO: 处理字节序问题。
         while (true) {
             if (!(*requestQueue)->empty()) {
-                const Request& r = (*requestQueue)->front();
+                const SentRequest& r = (*requestQueue)->front();
 
                 if (cmdIdCounter == maxCmdId)
                     cmdIdCounter = 0;
@@ -144,8 +144,8 @@ void Client::stop() {
     mWriterHandle.join();
 }
 
-void Client::send(Request&& r) {
-    mRequestQueue->emplace(std::move(r));
+void Client::send(SentRequest&& r) {
+    mSentRequestQueue->emplace(std::move(r));
 }
 
 Client::Client(uint16_t apiVersion, uint64_t gatewayId,

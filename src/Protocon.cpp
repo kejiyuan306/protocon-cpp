@@ -9,6 +9,7 @@
 
 #include "ThreadSafeQueue.h"
 #include "ThreadSafeUnorderedMap.h"
+#include "Util.h"
 
 namespace Protocon {
 
@@ -34,27 +35,32 @@ void Client::run(const char* host, uint16_t port) {
             uint16_t cmdId;
             if (!~socket.read_n(&cmdId, sizeof(cmdId))) break;
 
-            // TODO: 处理字节序问题。
             if (cmdId > 0) {
                 // 请求。
 
                 uint64_t gatewayId;
                 if (!~socket.read_n(&gatewayId, sizeof(gatewayId))) break;
+                gatewayId = Util::BigEndian(gatewayId);
 
                 uint64_t clientId;
                 if (!~socket.read_n(&clientId, sizeof(clientId))) break;
+                clientId = Util::BigEndian(clientId);
 
                 uint64_t time;
                 if (!~socket.read_n(&time, sizeof(time))) break;
+                time = Util::BigEndian(time);
 
                 uint16_t apiVersion;
                 if (!~socket.read_n(&apiVersion, sizeof(apiVersion))) break;
+                apiVersion = Util::BigEndian(apiVersion);
 
                 uint16_t type;
                 if (!~socket.read_n(&type, sizeof(type))) break;
+                type = Util::BigEndian(type);
 
                 uint32_t length;
                 if (!~socket.read_n(&length, sizeof(length))) break;
+                length = Util::BigEndian(length);
 
                 if (!~socket.read_n(&buf, length)) break;
 
@@ -74,12 +80,15 @@ void Client::run(const char* host, uint16_t port) {
 
                 uint64_t time;
                 if (!~socket.read_n(&time, sizeof(time))) break;
+                time = Util::BigEndian(time);
 
                 uint8_t status;
                 if (!~socket.read_n(&status, sizeof(status))) break;
+                status = Util::BigEndian(status);
 
                 uint32_t length;
                 if (!~socket.read_n(&length, sizeof(length))) break;
+                length = Util::BigEndian(length);
 
                 if (!~socket.read_n(&buf, length)) break;
 
@@ -103,28 +112,35 @@ void Client::run(const char* host, uint16_t port) {
                                  requestTypeMap = &mSentRequestTypeMap,
                                  gatewayId = mGatewayId,
                                  apiVersion = mApiVersion]() mutable {
-        // TODO: 处理字节序问题。
         while (true) {
             if (!(*requestQueue)->empty()) {
                 auto [cmdId, r] = (*requestQueue)->pop();
 
                 (*requestTypeMap)->emplace(cmdId, r.type);
 
+                cmdId = Util::BigEndian(cmdId);
                 if (!~socket.write_n(&cmdId, sizeof(cmdId))) break;
 
+                gatewayId = Util::BigEndian(gatewayId);
                 if (!~socket.write_n(&gatewayId, sizeof(gatewayId))) break;
 
+                r.clientId = Util::BigEndian(r.clientId);
                 if (!~socket.write_n(&r.clientId, sizeof(r.clientId))) break;
 
                 uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                time = Util::BigEndian(time);
                 if (!~socket.write_n(&time, sizeof(time))) break;
 
+                apiVersion = Util::BigEndian(apiVersion);
                 if (!~socket.write_n(&apiVersion, sizeof(apiVersion))) break;
 
+                r.type = Util::BigEndian(r.type);
                 if (!~socket.write_n(&r.type, sizeof(r.type))) break;
 
                 uint32_t length = r.data.length();
+                length = Util::BigEndian(length);
                 if (!~socket.write_n(&length, sizeof(length))) break;
+                length = Util::BigEndian(length);
 
                 if (!~socket.write_n(r.data.data(), length)) break;
             }

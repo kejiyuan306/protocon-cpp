@@ -35,7 +35,7 @@ void Client::run(const char* host, uint16_t port) {
             uint16_t cmdId;
             if (!~socket.read_n(&cmdId, sizeof(cmdId))) break;
 
-            if (cmdId > 0) {
+            if ((cmdId & 0x8000) == 0 && cmdId != 0) {
                 // 请求。
 
                 uint64_t gatewayId;
@@ -73,7 +73,7 @@ void Client::run(const char* host, uint16_t port) {
                     .type = type,
                     .data = std::u8string(buf.data(), length),
                 });
-            } else if (cmdId < 0) {
+            } else if ((cmdId & 0x8000) == 0x8000 && cmdId != 0x8000) {
                 // 响应。
 
                 cmdId = -cmdId;

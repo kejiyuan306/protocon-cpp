@@ -6,9 +6,20 @@
 
 namespace Protocon {
 
+// TODO: 我们可能需要条件变量
 template <typename T>
 class ThreadSafeQueue {
   public:
+    bool empty() {
+        std::lock_guard<std::mutex> lock(mtx);
+        return q.empty();
+    }
+
+    const T& front() {
+        std::lock_guard<std::mutex> lock(mtx);
+        return q.front();
+    }
+
     void emplace(T&& v) {
         std::lock_guard<std::mutex> lock(mtx);
         q.emplace(std::move(v));
@@ -17,11 +28,6 @@ class ThreadSafeQueue {
     void pop() {
         std::lock_guard<std::mutex> lock(mtx);
         q.pop();
-    }
-
-    const T& front() {
-        std::lock_guard<std::mutex> lock(mtx);
-        return q.front();
     }
 
   private:

@@ -17,6 +17,9 @@ class stream_socket;
 
 namespace Protocon {
 
+template <typename K, typename T>
+class ThreadSafeUnorderedMap;
+
 struct ReceivedRequest {
     uint16_t commandId;
     uint64_t gatewayId;
@@ -79,8 +82,7 @@ class Client {
 
     std::thread readerHandle;
 
-    std::mutex sentRequestTypeMapMtx;
-    std::unordered_map<uint16_t, uint16_t> sentRequestTypeMap;
+    std::unique_ptr<ThreadSafeUnorderedMap<uint16_t, uint16_t>> sentRequestTypeMap;
 
     friend class ClientBuilder;
 };

@@ -6,6 +6,8 @@
 #include <cstdio>
 #include <thread>
 
+#include "ThreadSafeUnorderedMap.h"
+
 namespace Protocon {
 
 void Client::run(const char* host, uint16_t port) {
@@ -14,10 +16,11 @@ void Client::run(const char* host, uint16_t port) {
         printf("Connect failed, details: %s\n", conn->last_error_str().c_str());
     socket = std::move(conn);
 
+    sentRequestTypeMap = std::make_unique<ThreadSafeUnorderedMap<uint16_t, uint16_t>>();
+
     readerHandle = std::thread([socket = socket->clone(),
                                 requestHandlerMap = &this->requestHandlerMap,
                                 responseHandlerMap = &this->responseHandlerMap,
-                                requestTypeMapMtx = &this->sentRequestTypeMapMtx,
                                 requestTypeMap = &this->sentRequestTypeMap]() mutable {
         std::array<char8_t, 1024> buf;
 
@@ -74,11 +77,7 @@ void Client::run(const char* host, uint16_t port) {
 
                 if (!~socket.read_n(&buf, length)) break;
 
-                uint16_t type;
-                {
-                    std::lock_guard<std::mutex> lock(*requestTypeMapMtx);
-                    type = requestTypeMap->at(cmdId);
-                }
+                uint16_t type = (*requestTypeMap)->at(cmdId);
 
                 responseHandlerMap->at(type)->handle(ReceivedResponse{
                     .commandId = cmdId,

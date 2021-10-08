@@ -18,7 +18,7 @@ Client::~Client() = default;
 void Client::run(const char* host, uint16_t port) {
     auto conn = std::make_unique<sockpp::tcp_connector>();
     if (!conn->connect(sockpp::inet_address(host, port)))
-        printf("Connect failed, details: %s\n", conn->last_error_str().c_str());
+        std::printf("Connect failed, details: %s\n", conn->last_error_str().c_str());
     mSocket = std::move(conn);
 
     mReceivedRequestQueue = std::make_unique<ThreadSafeQueue<ReceivedRequest>>();
@@ -101,11 +101,11 @@ void Client::run(const char* host, uint16_t port) {
                     .data = std::u8string(buf.data(), length),
                 });
             } else {
-                printf("Fatal error, please contact to developers.");
+                std::printf("Fatal error, please contact to developers.");
                 return;
             }
         }
-        printf("Disconnected, details: %s\n", socket.last_error_str().c_str());
+        std::printf("Disconnected, details: %s\n", socket.last_error_str().c_str());
     });
 
     mWriterHandle = std::thread([socket = mSocket->clone(),
@@ -166,7 +166,7 @@ void Client::run(const char* host, uint16_t port) {
 
             std::this_thread::sleep_for(std::chrono::milliseconds(400));
         }
-        printf("Disconnected, details: %s\n", socket.last_error_str().c_str());
+        std::printf("Disconnected, details: %s\n", socket.last_error_str().c_str());
     });
 }
 

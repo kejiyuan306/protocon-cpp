@@ -38,11 +38,13 @@ struct ReceivedResponse {
 };
 
 struct Request {
+    uint64_t clientId;
     uint16_t type;
     std::u8string data;
 };
 
 struct Response {
+    uint64_t clientId;
     uint8_t status;
     std::u8string data;
 };

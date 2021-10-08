@@ -98,6 +98,7 @@ void Client::run(const char* host, uint16_t port) {
 
     mWriterHandle = std::thread([socket = mSocket->clone(),
                                  requestQueue = &mSentRequestQueue,
+                                 requestTypeMap = &mSentRequestTypeMap,
                                  gatewayId = mGatewayId,
                                  apiVersion = mApiVersion]() mutable {
         uint16_t cmdIdCounter = 0;
@@ -112,7 +113,9 @@ void Client::run(const char* host, uint16_t port) {
                     cmdIdCounter = 0;
                 cmdIdCounter++;
 
-                if (!~socket.write_n(&cmdIdCounter, sizeof(cmdIdCounter))) break;
+                const uint16_t cmdId = cmdIdCounter;
+
+                if (!~socket.write_n(&cmdId, sizeof(cmdId))) break;
 
                 if (!~socket.write_n(&gatewayId, sizeof(gatewayId))) break;
 
@@ -129,6 +132,8 @@ void Client::run(const char* host, uint16_t port) {
                 if (!~socket.write_n(&length, sizeof(length))) break;
 
                 if (!~socket.write_n(r.data.data(), length)) break;
+
+                (*requestTypeMap)->emplace(cmdId, r.type);
 
                 (*requestQueue)->pop();
             }

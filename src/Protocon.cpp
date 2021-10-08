@@ -21,7 +21,7 @@ void Client::run(const char* host, uint16_t port) {
     mReceivedRequestQueue = std::make_unique<ThreadSafeQueue<ReceivedRequest>>();
     mReceivedResponseQueue = std::make_unique<ThreadSafeQueue<ReceivedResponse>>();
 
-    mSentRequestQueue = std::make_unique<ThreadSafeQueue<SentRequest>>();
+    mSentRequestQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, SentRequest>>>();
     mSentResponseQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, SentResponse>>>();
     mSentRequestTypeMap = std::make_unique<ThreadSafeUnorderedMap<uint16_t, uint16_t>>();
 
@@ -103,18 +103,10 @@ void Client::run(const char* host, uint16_t port) {
                                  requestTypeMap = &mSentRequestTypeMap,
                                  gatewayId = mGatewayId,
                                  apiVersion = mApiVersion]() mutable {
-        uint16_t cmdIdCounter = 0;
-        const uint16_t maxCmdId = 0x7fff;
-
         // TODO: 处理字节序问题。
         while (true) {
             if (!(*requestQueue)->empty()) {
-                SentRequest r = (*requestQueue)->pop();
-
-                if (cmdIdCounter == maxCmdId)
-                    cmdIdCounter = 0;
-                cmdIdCounter++;
-                const uint16_t cmdId = cmdIdCounter;
+                auto [cmdId, r] = (*requestQueue)->pop();
 
                 (*requestTypeMap)->emplace(cmdId, r.type);
 
@@ -183,7 +175,11 @@ void Client::poll() {
 }
 
 void Client::send(SentRequest&& r) {
-    mSentRequestQueue->emplace(std::move(r));
+    const uint16_t cmdId = mCmdIdCounter++;
+    if (mCmdIdCounter > cMaxCmdId)
+        mCmdIdCounter = 1;
+
+    mSentRequestQueue->emplace(std::make_pair(cmdId, r));
 }
 
 Client::Client(uint16_t apiVersion, uint64_t gatewayId,

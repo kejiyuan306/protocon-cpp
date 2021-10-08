@@ -92,12 +92,15 @@ class Client {
     std::thread mReaderHandle;
     std::thread mWriterHandle;
 
+    uint16_t mCmdIdCounter = 1;
+    const uint16_t cMaxCmdId = 0x7fff;
+
     // Maintained by Reader
     std::unique_ptr<ThreadSafeQueue<ReceivedRequest>> mReceivedRequestQueue;
     std::unique_ptr<ThreadSafeQueue<ReceivedResponse>> mReceivedResponseQueue;
 
     // Maintained by Writer
-    std::unique_ptr<ThreadSafeQueue<SentRequest>> mSentRequestQueue;
+    std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, SentRequest>>> mSentRequestQueue;
     std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, SentResponse>>> mSentResponseQueue;
     std::unique_ptr<ThreadSafeUnorderedMap<uint16_t, uint16_t>> mSentRequestTypeMap;
 

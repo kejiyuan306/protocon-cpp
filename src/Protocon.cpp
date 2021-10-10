@@ -201,7 +201,7 @@ void Client::poll() {
     while (!mReceivedResponseQueue->empty()) {
         ReceivedResponse r = mReceivedResponseQueue->pop();
 
-        uint16_t type = mSentRequestTypeMap->at(r.commandId);
+        uint16_t type = mSentRequestTypeMap->erase(r.commandId);
         mResponseHandlerMap.at(type)->handle(r);
     }
 }

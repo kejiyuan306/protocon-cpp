@@ -15,12 +15,14 @@ namespace Protocon {
 
 Client::~Client() = default;
 
-void Client::run(const char* host, uint16_t port) {
+bool Client::run(const char* host, uint16_t port) {
     mStopFlag = false;
 
     auto conn = std::make_unique<sockpp::tcp_connector>();
-    if (!conn->connect(sockpp::inet_address(host, port)))
+    if (!conn->connect(sockpp::inet_address(host, port))) {
         std::printf("Connect failed, details: %s\n", conn->last_error_str().c_str());
+        return false;
+    }
     mSocket = std::move(conn);
 
     mReceivedRequestQueue = std::make_unique<ThreadSafeQueue<ReceivedRequest>>();
@@ -176,6 +178,8 @@ void Client::run(const char* host, uint16_t port) {
         else
             std::printf("Write closed, details: %s\n", socket.last_error_str().c_str());
     });
+
+    return true;
 }
 
 void Client::stop() {

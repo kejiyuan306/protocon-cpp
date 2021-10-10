@@ -15,9 +15,10 @@ class ThreadSafeUnorderedMap {
         mMap.emplace(std::forward<Args>(args)...);
     }
 
-    K erase(const K& k) {
+    T erase(const K& k) {
         std::lock_guard<std::mutex> lock(mMtx);
-        return *mMap.erase(k);
+        auto it = mMap.find(k);
+        return *mMap.erase(it);
     }
 
     const T& at(const K& k) {

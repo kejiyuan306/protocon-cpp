@@ -9,7 +9,7 @@ bool stop_flag = false;
 int main() {
     auto client = Protocon::ClientBuilder(2).build();
 
-    client.run("127.0.0.1", 8081);
+    if (!client.run("127.0.0.1", 8081)) return 1;
 
     client.send(Protocon::SentRequest{
                     .clientId = 0x0001,
@@ -28,4 +28,6 @@ int main() {
     }
 
     client.stop();
+
+    return 0;
 }

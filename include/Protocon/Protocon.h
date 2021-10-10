@@ -54,13 +54,7 @@ struct SentResponse {
     std::u8string data;
 };
 
-class RequestHandler {
-  public:
-    virtual ~RequestHandler(){};
-
-    virtual uint16_t type() = 0;
-    virtual SentResponse handle(const ReceivedRequest& request) = 0;
-};
+using RequestHandler = std::function<SentResponse(const ReceivedRequest&)>;
 
 using ResponseHandler = std::function<void(const ReceivedResponse&)>;
 
@@ -78,11 +72,11 @@ class Client {
 
   private:
     Client(uint16_t apiVersion, uint64_t gatewayId,
-           std::vector<std::unique_ptr<RequestHandler>>&& requestHandlers);
+           std::vector<std::pair<uint16_t, RequestHandler>>&& requestHandlers);
 
     uint64_t mGatewayId;
     uint16_t mApiVersion;
-    std::unordered_map<uint16_t, std::unique_ptr<RequestHandler>> mRequestHandlerMap;
+    std::unordered_map<uint16_t, RequestHandler> mRequestHandlerMap;
 
     std::atomic_bool mStopFlag;
 
@@ -114,7 +108,7 @@ class ClientBuilder {
         this->mGatewayId = gatewayId;
         return *this;
     }
-    ClientBuilder& withRequestHandler(std::unique_ptr<RequestHandler>&& handler) {
+    ClientBuilder& withRequestHandler(std::pair<uint16_t, RequestHandler>&& handler) {
         mRequestHandlers.emplace_back(std::move(handler));
         return *this;
     }
@@ -125,7 +119,7 @@ class ClientBuilder {
 
     uint64_t mGatewayId = 0;
 
-    std::vector<std::unique_ptr<RequestHandler>> mRequestHandlers;
+    std::vector<std::pair<uint16_t, RequestHandler>> mRequestHandlers;
 };
 
 }  // namespace Protocon

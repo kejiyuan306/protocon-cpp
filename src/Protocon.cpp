@@ -195,7 +195,7 @@ void Client::poll() {
     while (!mReceivedRequestQueue->empty()) {
         ReceivedRequest r = mReceivedRequestQueue->pop();
 
-        mSentResponseQueue->emplace(std::make_pair(r.commandId, mRequestHandlerMap.at(r.type)->handle(r)));
+        mSentResponseQueue->emplace(std::make_pair(r.commandId, mRequestHandlerMap.at(r.type)(r)));
     }
 
     while (!mReceivedResponseQueue->empty()) {
@@ -216,10 +216,10 @@ void Client::send(SentRequest&& r, ResponseHandler&& handler) {
 }
 
 Client::Client(uint16_t apiVersion, uint64_t gatewayId,
-               std::vector<std::unique_ptr<RequestHandler>>&& requestHandlers)
+               std::vector<std::pair<uint16_t, RequestHandler>>&& requestHandlers)
     : mApiVersion(apiVersion), mGatewayId(gatewayId) {
     for (auto&& h : requestHandlers)
-        mRequestHandlerMap.emplace(h->type(), std::move(h));
+        mRequestHandlerMap.emplace(h.first, std::move(h.second));
 }
 
 }  // namespace Protocon

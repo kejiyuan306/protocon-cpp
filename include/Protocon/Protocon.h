@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -61,13 +62,7 @@ class RequestHandler {
     virtual SentResponse handle(const ReceivedRequest& request) = 0;
 };
 
-class ResponseHandler {
-  public:
-    virtual ~ResponseHandler(){};
-
-    virtual uint16_t type() = 0;
-    virtual void handle(const ReceivedResponse& response) = 0;
-};
+using ResponseHandler = std::function<void(const ReceivedResponse&)>;
 
 class Client {
   public:
@@ -79,17 +74,15 @@ class Client {
     void stop();
 
     void poll();
-    void send(SentRequest&& r);
+    void send(SentRequest&& r, ResponseHandler&& handler);
 
   private:
     Client(uint16_t apiVersion, uint64_t gatewayId,
-           std::vector<std::unique_ptr<RequestHandler>>&& requestHandlers,
-           std::vector<std::unique_ptr<ResponseHandler>>&& responseHandlers);
+           std::vector<std::unique_ptr<RequestHandler>>&& requestHandlers);
 
     uint64_t mGatewayId;
     uint16_t mApiVersion;
     std::unordered_map<uint16_t, std::unique_ptr<RequestHandler>> mRequestHandlerMap;
-    std::unordered_map<uint16_t, std::unique_ptr<ResponseHandler>> mResponseHandlerMap;
 
     std::atomic_bool mStopFlag;
 
@@ -101,6 +94,8 @@ class Client {
     uint16_t mCmdIdCounter = 1;
     const uint16_t cMaxCmdId = 0x7fff;
 
+    std::unordered_map<uint64_t, ResponseHandler> mSentRequestResponseHandlerMap;
+
     // Maintained by Reader
     std::unique_ptr<ThreadSafeQueue<ReceivedRequest>> mReceivedRequestQueue;
     std::unique_ptr<ThreadSafeQueue<ReceivedResponse>> mReceivedResponseQueue;
@@ -108,7 +103,6 @@ class Client {
     // Maintained by Writer
     std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, SentRequest>>> mSentRequestQueue;
     std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, SentResponse>>> mSentResponseQueue;
-    std::unique_ptr<ThreadSafeUnorderedMap<uint16_t, uint16_t>> mSentRequestTypeMap;
 
     friend class ClientBuilder;
 };
@@ -124,11 +118,7 @@ class ClientBuilder {
         mRequestHandlers.emplace_back(std::move(handler));
         return *this;
     }
-    ClientBuilder& withResponseHandler(std::unique_ptr<ResponseHandler>&& handler) {
-        mResponseHandlers.emplace_back(std::move(handler));
-        return *this;
-    }
-    Client build() { return Client(mApiVersion, mGatewayId, std::move(mRequestHandlers), std::move(mResponseHandlers)); }
+    Client build() { return Client(mApiVersion, mGatewayId, std::move(mRequestHandlers)); }
 
   private:
     uint16_t mApiVersion;
@@ -136,7 +126,6 @@ class ClientBuilder {
     uint64_t mGatewayId = 0;
 
     std::vector<std::unique_ptr<RequestHandler>> mRequestHandlers;
-    std::vector<std::unique_ptr<ResponseHandler>> mResponseHandlers;
 };
 
 }  // namespace Protocon

@@ -28,7 +28,6 @@ void Client::run(const char* host, uint16_t port) {
 
     mSentRequestQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, SentRequest>>>();
     mSentResponseQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, SentResponse>>>();
-    mSentRequestTypeMap = std::make_unique<ThreadSafeUnorderedMap<uint16_t, uint16_t>>();
 
     mReaderHandle = std::thread([stopFlag = &mStopFlag,
                                  socket = mSocket->clone(),
@@ -119,14 +118,11 @@ void Client::run(const char* host, uint16_t port) {
                                  socket = mSocket->clone(),
                                  requestQueue = &mSentRequestQueue,
                                  responseQueue = &mSentResponseQueue,
-                                 requestTypeMap = &mSentRequestTypeMap,
                                  gatewayId = mGatewayId,
                                  apiVersion = mApiVersion]() mutable {
         while (!*stopFlag) {
             if (!(*requestQueue)->empty()) {
                 auto [cmdId, r] = (*requestQueue)->pop();
-
-                (*requestTypeMap)->emplace(cmdId, r.type);
 
                 cmdId = Util::BigEndian(cmdId);
                 if (!~socket.write_n(&cmdId, sizeof(cmdId))) break;
@@ -201,27 +197,25 @@ void Client::poll() {
     while (!mReceivedResponseQueue->empty()) {
         ReceivedResponse r = mReceivedResponseQueue->pop();
 
-        uint16_t type = mSentRequestTypeMap->erase(r.commandId);
-        mResponseHandlerMap.at(type)->handle(r);
+        auto it = mSentRequestResponseHandlerMap.find(r.commandId);
+        mSentRequestResponseHandlerMap.erase(it)->second(r);
     }
 }
 
-void Client::send(SentRequest&& r) {
+void Client::send(SentRequest&& r, ResponseHandler&& handler) {
     const uint16_t cmdId = mCmdIdCounter++;
     if (mCmdIdCounter > cMaxCmdId)
         mCmdIdCounter = 1;
 
+    mSentRequestResponseHandlerMap.emplace(cmdId, std::move(handler));
     mSentRequestQueue->emplace(std::make_pair(cmdId, std::move(r)));
 }
 
 Client::Client(uint16_t apiVersion, uint64_t gatewayId,
-               std::vector<std::unique_ptr<RequestHandler>>&& requestHandlers,
-               std::vector<std::unique_ptr<ResponseHandler>>&& responseHandlers)
+               std::vector<std::unique_ptr<RequestHandler>>&& requestHandlers)
     : mApiVersion(apiVersion), mGatewayId(gatewayId) {
     for (auto&& h : requestHandlers)
         mRequestHandlerMap.emplace(h->type(), std::move(h));
-    for (auto&& h : responseHandlers)
-        mResponseHandlerMap.emplace(h->type(), std::move(h));
 }
 
 }  // namespace Protocon

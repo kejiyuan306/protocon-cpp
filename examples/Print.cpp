@@ -7,7 +7,18 @@
 bool stop_flag = false;
 
 int main() {
-    auto client = Protocon::ClientBuilder(2).build();
+    auto client =
+        Protocon::ClientBuilder(2)
+            .withRequestHandler(std::make_pair(0x0001, [](const Protocon::ReceivedRequest& r) {
+                std::printf("Request receivd, data: %s\n", reinterpret_cast<const char*>(r.data.data()));
+
+                return Protocon::SentResponse{
+                    .clientId = 0x0001,
+                    .status = 0x00,
+                    .data = u8"{}",
+                };
+            }))
+            .build();
 
     if (!client.run("127.0.0.1", 8081)) return 1;
 

@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <thread>
 
+#include "Decoder.h"
 #include "ThreadSafeQueue.h"
 #include "ThreadSafeUnorderedMap.h"
 #include "Util.h"
@@ -35,79 +36,16 @@ bool Client::run(const char* host, uint16_t port) {
                                  socket = mSocket->clone(),
                                  requestQueue = &mReceivedRequestQueue,
                                  responseQueue = &mReceivedResponseQueue]() mutable {
-        std::array<char8_t, 1024> buf;
-
         while (!*stopFlag) {
-            uint16_t cmdId;
-            if (!~socket.read_n(&cmdId, sizeof(cmdId))) break;
-            cmdId = Util::BigEndian(cmdId);
-
-            if ((cmdId & 0x8000) == 0 && cmdId != 0) {
-                // 请求。
-
-                uint64_t gatewayId;
-                if (!~socket.read_n(&gatewayId, sizeof(gatewayId))) break;
-                gatewayId = Util::BigEndian(gatewayId);
-
-                uint64_t clientId;
-                if (!~socket.read_n(&clientId, sizeof(clientId))) break;
-                clientId = Util::BigEndian(clientId);
-
-                uint64_t time;
-                if (!~socket.read_n(&time, sizeof(time))) break;
-                time = Util::BigEndian(time);
-
-                uint16_t apiVersion;
-                if (!~socket.read_n(&apiVersion, sizeof(apiVersion))) break;
-                apiVersion = Util::BigEndian(apiVersion);
-
-                uint16_t type;
-                if (!~socket.read_n(&type, sizeof(type))) break;
-                type = Util::BigEndian(type);
-
-                uint32_t length;
-                if (!~socket.read_n(&length, sizeof(length))) break;
-                length = Util::BigEndian(length);
-
-                if (!~socket.read_n(&buf, length)) break;
-
-                (*requestQueue)->emplace(ReceivedRequest{
-                    .commandId = cmdId,
-                    .gatewayId = gatewayId,
-                    .clientId = clientId,
-                    .time = time,
-                    .apiVersion = apiVersion,
-                    .type = type,
-                    .data = std::u8string(buf.data(), length),
-                });
-            } else if ((cmdId & 0x8000) == 0x8000 && cmdId != 0x8000) {
-                // 响应。
-
-                cmdId ^= 0x8000;
-
-                uint64_t time;
-                if (!~socket.read_n(&time, sizeof(time))) break;
-                time = Util::BigEndian(time);
-
-                uint8_t status;
-                if (!~socket.read_n(&status, sizeof(status))) break;
-
-                uint32_t length;
-                if (!~socket.read_n(&length, sizeof(length))) break;
-                length = Util::BigEndian(length);
-
-                if (!~socket.read_n(&buf, length)) break;
-
-                (*responseQueue)->emplace(ReceivedResponse{
-                    .commandId = cmdId,
-                    .time = time,
-                    .status = status,
-                    .data = std::u8string(buf.data(), length),
-                });
-            } else {
-                std::printf("Fatal error, please contact to developers.\n");
-                return;
-            }
+            ReceivedRequest request;
+            ReceivedResponse response;
+            auto res = Decoder(socket).decode(request, response);
+            if (res == Request)
+                (*requestQueue)->emplace(std::move(request));
+            else if (res == Response)
+                (*responseQueue)->emplace(std::move(response));
+            else
+                break;
         }
 
         if (*stopFlag)

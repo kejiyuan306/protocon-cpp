@@ -176,7 +176,7 @@ bool Client::run(const char* host, uint16_t port) {
         if (*stopFlag)
             std::printf("Writer closed by shutdown\n");
         else
-            std::printf("Write closed, details: %s\n", socket.last_error_str().c_str());
+            std::printf("Writer closed, details: %s\n", socket.last_error_str().c_str());
     });
 
     return true;

@@ -15,9 +15,9 @@ enum DecodeResult {
 
 class Decoder {
   public:
-    Decoder(sockpp::stream_socket& mSocket) : mSocket(mSocket) {}
+    inline Decoder(sockpp::stream_socket& mSocket) : mSocket(mSocket) {}
 
-    DecodeResult decode(ReceivedRequest& request, ReceivedResponse& response) {
+    inline DecodeResult decode(ReceivedRequest& request, ReceivedResponse& response) {
         std::array<char8_t, 1024> buf;
 
         uint16_t cmdId;

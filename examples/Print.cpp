@@ -35,7 +35,7 @@ int main() {
                     stop_flag = true;
                 });
 
-    while (!stop_flag) {
+    while (client.isOpen() && !stop_flag) {
         // 从服务端收到的报文会放在队列中
         // 只有在 poll 的时候才会调用各个回调处理相应的报文
         client.poll();

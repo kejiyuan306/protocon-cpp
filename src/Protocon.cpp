@@ -8,6 +8,7 @@
 #include <thread>
 
 #include "Decoder.h"
+#include "Encoder.h"
 #include "ThreadSafeQueue.h"
 #include "ThreadSafeUnorderedMap.h"
 #include "Util.h"
@@ -68,48 +69,13 @@ bool Client::run(const char* host, uint16_t port) {
             if (!(*requestQueue)->empty()) {
                 auto [cmdId, r] = (*requestQueue)->pop();
 
-                cmdId = Util::BigEndian(cmdId);
-                if (!~socket.write_n(&cmdId, sizeof(cmdId))) break;
-
-                gatewayId = Util::BigEndian(gatewayId);
-                if (!~socket.write_n(&gatewayId, sizeof(gatewayId))) break;
-
-                r.clientId = Util::BigEndian(r.clientId);
-                if (!~socket.write_n(&r.clientId, sizeof(r.clientId))) break;
-
-                uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-                time = Util::BigEndian(time);
-                if (!~socket.write_n(&time, sizeof(time))) break;
-
-                apiVersion = Util::BigEndian(apiVersion);
-                if (!~socket.write_n(&apiVersion, sizeof(apiVersion))) break;
-
-                r.type = Util::BigEndian(r.type);
-                if (!~socket.write_n(&r.type, sizeof(r.type))) break;
-
-                uint32_t length = r.data.length();
-                length = Util::BigEndian(length);
-                if (!~socket.write_n(&length, sizeof(length))) break;
-                length = Util::BigEndian(length);
-
-                if (!~socket.write_n(r.data.data(), length)) break;
+                if (!Encoder(socket).encode(cmdId, gatewayId, apiVersion, r)) break;
             }
 
             if (!(*responseQueue)->empty()) {
                 auto [cmdId, r] = (*responseQueue)->pop();
 
-                cmdId &= 0x8000;
-                if (!~socket.write_n(&cmdId, sizeof(cmdId))) break;
-
-                uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-                if (!~socket.write_n(&time, sizeof(time))) break;
-
-                if (!~socket.write_n(&r.status, sizeof(r.status))) break;
-
-                uint32_t length = r.data.length();
-                if (!~socket.write_n(&length, sizeof(length))) break;
-
-                if (!~socket.write_n(r.data.data(), length)) break;
+                if (!Encoder(socket).encode(cmdId, r)) break;
             }
 
             std::this_thread::sleep_for(std::chrono::milliseconds(400));

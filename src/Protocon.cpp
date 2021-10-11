@@ -16,6 +16,10 @@ namespace Protocon {
 
 Client::~Client() = default;
 
+bool Client::isOpen() const {
+    return mSocket->is_open();
+}
+
 bool Client::run(const char* host, uint16_t port) {
     mStopFlag = false;
 

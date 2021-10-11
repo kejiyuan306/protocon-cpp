@@ -60,7 +60,7 @@ bool Client::run(const char* host, uint16_t port) {
                                  responseQueue = &mSentResponseQueue,
                                  gatewayId = mGatewayId,
                                  apiVersion = mApiVersion]() mutable {
-        while (!*stopFlag) {
+        while (socket.is_open() && !*stopFlag) {
             if (!(*requestQueue)->empty()) {
                 auto [cmdId, r] = (*requestQueue)->pop();
 

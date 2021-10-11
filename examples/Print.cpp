@@ -10,7 +10,7 @@ int main() {
     // 添加 0x0001 的服务端请求处理器
     auto client =
         Protocon::ClientBuilder(2)
-            .withRequestHandler(std::make_pair(0x0001, [](const Protocon::ReceivedRequest& r) {
+            .withRequestHandler(0x0001, [](const Protocon::ReceivedRequest& r) {
                 std::printf("Request receivd, data: %s\n", reinterpret_cast<const char*>(r.data.data()));
 
                 return Protocon::SentResponse{
@@ -18,7 +18,7 @@ int main() {
                     .status = 0x00,
                     .data = u8"{}",
                 };
-            }))
+            })
             .build();
 
     // 尝试连接到服务端

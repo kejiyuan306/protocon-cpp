@@ -108,8 +108,8 @@ class ClientBuilder {
         this->mGatewayId = gatewayId;
         return *this;
     }
-    ClientBuilder& withRequestHandler(std::pair<uint16_t, RequestHandler>&& handler) {
-        mRequestHandlers.emplace_back(std::move(handler));
+    ClientBuilder& withRequestHandler(uint16_t type, RequestHandler&& handler) {
+        mRequestHandlers.emplace_back(std::make_pair(type, std::move(handler)));
         return *this;
     }
     Client build() { return Client(mApiVersion, mGatewayId, std::move(mRequestHandlers)); }

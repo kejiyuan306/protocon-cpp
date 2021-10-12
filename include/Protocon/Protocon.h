@@ -25,6 +25,11 @@ class ThreadSafeQueue;
 template <typename K, typename T>
 class ThreadSafeUnorderedMap;
 
+struct SignUpResponse {
+    uint64_t clientId;
+    uint8_t status;
+};
+
 struct ReceivedRequest {
     uint16_t commandId;
     uint64_t gatewayId;
@@ -54,6 +59,8 @@ struct SentResponse {
     std::u8string data;
 };
 
+using SignUpHandler = std::function<void(const SignUpResponse&)>;
+
 using RequestHandler = std::function<SentResponse(const ReceivedRequest&)>;
 
 using ResponseHandler = std::function<void(const ReceivedResponse&)>;
@@ -74,10 +81,14 @@ class Gateway {
 
   private:
     Gateway(uint16_t apiVersion, uint64_t gatewayId,
+            std::vector<SignUpHandler>&& signUpHandlers,
+            std::vector<uint64_t>&& clientIds,
             std::vector<std::pair<uint16_t, RequestHandler>>&& requestHandlers);
 
     uint64_t mGatewayId;
     uint16_t mApiVersion;
+    std::vector<SignUpHandler> mSignUpHandlers;
+    std::vector<uint64_t> mClientIds;
     std::unordered_map<uint16_t, RequestHandler> mRequestHandlerMap;
 
     std::atomic_bool mStopFlag;
@@ -110,17 +121,36 @@ class GatewayBuilder {
         this->mGatewayId = gatewayId;
         return *this;
     }
+    // 对于需要注册的设备，提供注册完成后的回调
+    GatewayBuilder& withSignUpHandler(SignUpHandler&& handler) {
+        mSignUpHandlers.emplace_back(std::move(handler));
+        return *this;
+    }
+    // 对于不需要注册的设备，提供其客户端标识符
+    GatewayBuilder& withClientId(uint64_t clientId) {
+        mClientIds.emplace_back(clientId);
+        return *this;
+    }
     GatewayBuilder& withRequestHandler(uint16_t type, RequestHandler&& handler) {
         mRequestHandlers.emplace_back(std::make_pair(type, std::move(handler)));
         return *this;
     }
-    Gateway build() { return Gateway(mApiVersion, mGatewayId, std::move(mRequestHandlers)); }
+    Gateway build() {
+        return Gateway(
+            mApiVersion,
+            mGatewayId,
+            std::move(mSignUpHandlers),
+            std::move(mClientIds),
+            std::move(mRequestHandlers));
+    }
 
   private:
     uint16_t mApiVersion;
 
     uint64_t mGatewayId = 0;
 
+    std::vector<SignUpHandler> mSignUpHandlers;
+    std::vector<uint64_t> mClientIds;
     std::vector<std::pair<uint16_t, RequestHandler>> mRequestHandlers;
 };
 

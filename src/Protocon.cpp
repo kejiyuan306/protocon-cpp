@@ -124,8 +124,11 @@ void Gateway::send(SentRequest&& r, ResponseHandler&& handler) {
 }
 
 Gateway::Gateway(uint16_t apiVersion, uint64_t gatewayId,
+                 std::vector<SignUpHandler>&& signUpHandlers,
+                 std::vector<uint64_t>&& clientIds,
                  std::vector<std::pair<uint16_t, RequestHandler>>&& requestHandlers)
-    : mApiVersion(apiVersion), mGatewayId(gatewayId) {
+    : mApiVersion(apiVersion), mGatewayId(gatewayId), mSignUpHandlers(signUpHandlers), mClientIds(clientIds) {
+    // TODO: 处理注册登录
     for (auto&& h : requestHandlers)
         mRequestHandlerMap.emplace(h.first, std::move(h.second));
 }

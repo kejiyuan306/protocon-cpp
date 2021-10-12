@@ -77,6 +77,6 @@ The library can be linked like `target_link_libraries(<Other Target> PRIVATE Pro
 
 Install the library as described above.
 
-Put a `find_package(Protocon 0.0.1 REQUIRED)` in `CMakeLists.txt`.
+Put a `find_package(Protocon 2.2.1 REQUIRED)` in `CMakeLists.txt`.
 
 Link the library like `target_link_libraries(<Other Target> PRIVATE Protocon::Protocon)`.

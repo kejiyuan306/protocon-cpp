@@ -40,7 +40,6 @@ class Encoder {
     }
 
     inline bool encode(uint16_t cmdId, const SentResponse& r) {
-        cmdId &= 0x8000;
         if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
 
         uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();

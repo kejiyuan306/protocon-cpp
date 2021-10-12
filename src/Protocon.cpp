@@ -103,7 +103,7 @@ void Client::poll() {
     while (!mReceivedRequestQueue->empty()) {
         ReceivedRequest r = mReceivedRequestQueue->pop();
 
-        mSentResponseQueue->emplace(std::make_pair(r.commandId, mRequestHandlerMap.at(r.type)(r)));
+        mSentResponseQueue->emplace(std::make_pair(r.commandId ^ 0x8000, mRequestHandlerMap.at(r.type)(r)));
     }
 
     while (!mReceivedResponseQueue->empty()) {

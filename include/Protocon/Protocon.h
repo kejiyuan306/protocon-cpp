@@ -58,9 +58,9 @@ using RequestHandler = std::function<SentResponse(const ReceivedRequest&)>;
 
 using ResponseHandler = std::function<void(const ReceivedResponse&)>;
 
-class Client {
+class Gateway {
   public:
-    ~Client();
+    ~Gateway();
 
     bool stopFlag() const { return mStopFlag; }
 
@@ -73,8 +73,8 @@ class Client {
     void send(SentRequest&& r, ResponseHandler&& handler);
 
   private:
-    Client(uint16_t apiVersion, uint64_t gatewayId,
-           std::vector<std::pair<uint16_t, RequestHandler>>&& requestHandlers);
+    Gateway(uint16_t apiVersion, uint64_t gatewayId,
+            std::vector<std::pair<uint16_t, RequestHandler>>&& requestHandlers);
 
     uint64_t mGatewayId;
     uint16_t mApiVersion;
@@ -100,21 +100,21 @@ class Client {
     std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, SentRequest>>> mSentRequestQueue;
     std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, SentResponse>>> mSentResponseQueue;
 
-    friend class ClientBuilder;
+    friend class GatewayBuilder;
 };
 
-class ClientBuilder {
+class GatewayBuilder {
   public:
-    ClientBuilder(uint16_t apiVersion) : mApiVersion(apiVersion) {}
-    ClientBuilder& withGatewayId(uint64_t gatewayId) {
+    GatewayBuilder(uint16_t apiVersion) : mApiVersion(apiVersion) {}
+    GatewayBuilder& withGatewayId(uint64_t gatewayId) {
         this->mGatewayId = gatewayId;
         return *this;
     }
-    ClientBuilder& withRequestHandler(uint16_t type, RequestHandler&& handler) {
+    GatewayBuilder& withRequestHandler(uint16_t type, RequestHandler&& handler) {
         mRequestHandlers.emplace_back(std::make_pair(type, std::move(handler)));
         return *this;
     }
-    Client build() { return Client(mApiVersion, mGatewayId, std::move(mRequestHandlers)); }
+    Gateway build() { return Gateway(mApiVersion, mGatewayId, std::move(mRequestHandlers)); }
 
   private:
     uint16_t mApiVersion;

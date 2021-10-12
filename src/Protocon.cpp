@@ -15,13 +15,13 @@
 
 namespace Protocon {
 
-Client::~Client() = default;
+Gateway::~Gateway() = default;
 
-bool Client::isOpen() const {
+bool Gateway::isOpen() const {
     return mSocket->is_open();
 }
 
-bool Client::run(const char* host, uint16_t port) {
+bool Gateway::run(const char* host, uint16_t port) {
     mStopFlag = false;
 
     auto conn = std::make_unique<sockpp::tcp_connector>();
@@ -90,7 +90,7 @@ bool Client::run(const char* host, uint16_t port) {
     return true;
 }
 
-void Client::stop() {
+void Gateway::stop() {
     mStopFlag = true;
 
     mSocket->shutdown();
@@ -99,7 +99,7 @@ void Client::stop() {
     mWriterHandle.join();
 }
 
-void Client::poll() {
+void Gateway::poll() {
     while (!mReceivedRequestQueue->empty()) {
         ReceivedRequest r = mReceivedRequestQueue->pop();
 
@@ -114,7 +114,7 @@ void Client::poll() {
     }
 }
 
-void Client::send(SentRequest&& r, ResponseHandler&& handler) {
+void Gateway::send(SentRequest&& r, ResponseHandler&& handler) {
     const uint16_t cmdId = mCmdIdCounter++;
     if (mCmdIdCounter > cMaxCmdId)
         mCmdIdCounter = 1;
@@ -123,8 +123,8 @@ void Client::send(SentRequest&& r, ResponseHandler&& handler) {
     mSentRequestQueue->emplace(std::make_pair(cmdId, std::move(r)));
 }
 
-Client::Client(uint16_t apiVersion, uint64_t gatewayId,
-               std::vector<std::pair<uint16_t, RequestHandler>>&& requestHandlers)
+Gateway::Gateway(uint16_t apiVersion, uint64_t gatewayId,
+                 std::vector<std::pair<uint16_t, RequestHandler>>&& requestHandlers)
     : mApiVersion(apiVersion), mGatewayId(gatewayId) {
     for (auto&& h : requestHandlers)
         mRequestHandlerMap.emplace(h.first, std::move(h.second));

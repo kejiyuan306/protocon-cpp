@@ -12,10 +12,10 @@ namespace Protocon {
 class Receiver {
   public:
     Receiver(sockpp::stream_socket&& socket,
-             ThreadSafeQueue<RequestWrapper>& requestTx,
-             ThreadSafeQueue<ResponseWrapper>& responseTx,
-             ThreadSafeQueue<SignUpResponse>& signUpResponseTx,
-             ThreadSafeQueue<SignInResponse>& signInResponseTx)
+             ThreadSafeQueue<RawRequest>& requestTx,
+             ThreadSafeQueue<RawResponse>& responseTx,
+             ThreadSafeQueue<RawSignUpResponse>& signUpResponseTx,
+             ThreadSafeQueue<RawSignInResponse>& signInResponseTx)
         : mSocket(std::move(socket)),
           mRequestTx(requestTx),
           mResponseTx(responseTx),
@@ -62,10 +62,10 @@ class Receiver {
 
   private:
     sockpp::stream_socket mSocket;
-    ThreadSafeQueue<RequestWrapper>& mRequestTx;
-    ThreadSafeQueue<ResponseWrapper>& mResponseTx;
-    ThreadSafeQueue<SignUpResponse>& mSignUpResponseTx;
-    ThreadSafeQueue<SignInResponse>& mSignInResponseTx;
+    ThreadSafeQueue<RawRequest>& mRequestTx;
+    ThreadSafeQueue<RawResponse>& mResponseTx;
+    ThreadSafeQueue<RawSignUpResponse>& mSignUpResponseTx;
+    ThreadSafeQueue<RawSignInResponse>& mSignInResponseTx;
 
     std::array<char8_t, 1024> mBuf;
 
@@ -106,7 +106,7 @@ class Receiver {
 
         if (!read(&mBuf, length)) return false;
 
-        mRequestTx.emplace(RequestWrapper{
+        mRequestTx.emplace(RawRequest{
             .cmdId = cmdId,
             .gatewayId = gatewayId,
             .apiVersion = apiVersion,
@@ -135,7 +135,7 @@ class Receiver {
 
         if (!~mSocket.read_n(&mBuf, length)) return false;
 
-        mResponseTx.emplace(ResponseWrapper{
+        mResponseTx.emplace(RawResponse{
             .cmdId = cmdId,
             .response = Response{
                 .time = time,
@@ -156,7 +156,7 @@ class Receiver {
         uint8_t status;
         if (!~mSocket.read_n(&status, sizeof(status))) return false;
 
-        mSignUpResponseTx.emplace(SignUpResponse{
+        mSignUpResponseTx.emplace(RawSignUpResponse{
             .cmdId = cmdId,
             .clientId = clientId,
             .status = status});
@@ -170,7 +170,7 @@ class Receiver {
         uint8_t status;
         if (!~mSocket.read_n(&status, sizeof(status))) return false;
 
-        mSignInResponseTx.emplace(SignInResponse{
+        mSignInResponseTx.emplace(RawSignInResponse{
             .cmdId = cmdId,
             .status = status});
 

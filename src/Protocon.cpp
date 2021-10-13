@@ -29,8 +29,8 @@ bool Gateway::run(const char* host, uint16_t port) {
     }
     mSocket = std::move(conn);
 
-    mReceivedRequestQueue = std::make_unique<ThreadSafeQueue<RequestWrapper>>();
-    mReceivedResponseQueue = std::make_unique<ThreadSafeQueue<ResponseWrapper>>();
+    mReceivedRequestQueue = std::make_unique<ThreadSafeQueue<RawRequest>>();
+    mReceivedResponseQueue = std::make_unique<ThreadSafeQueue<RawResponse>>();
 
     mSentRequestQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, Request>>>();
     mSentResponseQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, Response>>>();
@@ -57,13 +57,13 @@ void Gateway::stop() {
 
 void Gateway::poll() {
     while (!mReceivedRequestQueue->empty()) {
-        RequestWrapper r = mReceivedRequestQueue->pop();
+        RawRequest r = mReceivedRequestQueue->pop();
 
         mSentResponseQueue->emplace(std::make_pair(r.cmdId, mRequestHandlerMap.at(r.request.type)(r.request)));
     }
 
     while (!mReceivedResponseQueue->empty()) {
-        ResponseWrapper r = mReceivedResponseQueue->pop();
+        RawResponse r = mReceivedResponseQueue->pop();
 
         auto it = mSentRequestResponseHandlerMap.find(r.cmdId);
         mSentRequestResponseHandlerMap.erase(it)->second(r.response);

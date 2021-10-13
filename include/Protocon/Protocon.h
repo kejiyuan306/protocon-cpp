@@ -39,7 +39,7 @@ struct Request {
     std::u8string data;
 };
 
-struct RequestWrapper {
+struct RawRequest {
     uint16_t cmdId;
     uint64_t gatewayId;
     uint16_t apiVersion;
@@ -52,27 +52,27 @@ struct Response {
     std::u8string data;
 };
 
-struct ResponseWrapper {
+struct RawResponse {
     uint16_t cmdId;
     Response response;
 };
 
-struct SignUpRequest {
+struct RawSignUpRequest {
     uint16_t cmdId;
 };
 
-struct SignUpResponse {
+struct RawSignUpResponse {
     uint16_t cmdId;
     uint64_t clientId;
     uint8_t status;
 };
 
-struct SignInRequest {
+struct RawSignInRequest {
     uint16_t cmdId;
     uint64_t clientId;
 };
 
-struct SignInResponse {
+struct RawSignInResponse {
     uint16_t cmdId;
     uint8_t status;
 };
@@ -125,10 +125,10 @@ class Gateway {
     std::unordered_map<uint64_t, ResponseHandler> mSentRequestResponseHandlerMap;
 
     // Maintained by Reader
-    std::unique_ptr<ThreadSafeQueue<RequestWrapper>> mReceivedRequestQueue;
-    std::unique_ptr<ThreadSafeQueue<ResponseWrapper>> mReceivedResponseQueue;
-    std::unique_ptr<ThreadSafeQueue<SignUpResponse>> mReceivedSignUpResponseQueue;
-    std::unique_ptr<ThreadSafeQueue<SignInResponse>> mReceivedSignInResponseQueue;
+    std::unique_ptr<ThreadSafeQueue<RawRequest>> mReceivedRequestQueue;
+    std::unique_ptr<ThreadSafeQueue<RawResponse>> mReceivedResponseQueue;
+    std::unique_ptr<ThreadSafeQueue<RawSignUpResponse>> mReceivedSignUpResponseQueue;
+    std::unique_ptr<ThreadSafeQueue<RawSignInResponse>> mReceivedSignInResponseQueue;
 
     // Maintained by Writer
     std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, Request>>> mSentRequestQueue;

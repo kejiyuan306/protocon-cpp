@@ -26,6 +26,7 @@ template <typename K, typename T>
 class ThreadSafeUnorderedMap;
 
 class Sender;
+class Receiver;
 
 struct Client {
     uint64_t token;
@@ -108,7 +109,7 @@ class Gateway {
 
     std::unique_ptr<sockpp::stream_socket> mSocket;
 
-    std::thread mReaderHandle;
+    std::unique_ptr<Receiver> mReceiver;
     std::unique_ptr<Sender> mSender;
 
     uint16_t mCmdIdCounter = 1;

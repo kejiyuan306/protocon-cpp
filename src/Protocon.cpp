@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <thread>
 
-#include "Decoder.h"
+#include "Receiver.h"
 #include "Sender.h"
 #include "ThreadSafeQueue.h"
 #include "ThreadSafeUnorderedMap.h"
@@ -37,32 +37,13 @@ bool Gateway::run(const char* host, uint16_t port) {
     mSentRequestQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, SentRequest>>>();
     mSentResponseQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, SentResponse>>>();
 
-    mReaderHandle = std::thread([stopFlag = &mStopFlag,
-                                 socket = mSocket->clone(),
-                                 requestQueue = &mReceivedRequestQueue,
-                                 responseQueue = &mReceivedResponseQueue]() mutable {
-        while (!*stopFlag) {
-            ReceivedRequest request;
-            ReceivedResponse response;
-            auto res = Decoder(socket).decode(request, response);
-            if (res == Request)
-                (*requestQueue)->emplace(std::move(request));
-            else if (res == Response)
-                (*responseQueue)->emplace(std::move(response));
-            else
-                break;
-        }
-
-        if (*stopFlag)
-            std::printf("Reader closed by shutdown\n");
-        else
-            std::printf("Reader closed, details: %s\n", socket.last_error_str().c_str());
-    });
+    mReceiver = std::make_unique<Receiver>(
+        mStopFlag, mSocket->clone(), *mReceivedRequestQueue, *mReceivedResponseQueue);
+    mReceiver->run();
 
     mSender = std::make_unique<Sender>(
         mApiVersion, mGatewayId, mStopFlag,
         mSocket->clone(), *mSentRequestQueue, *mSentResponseQueue);
-
     mSender->run();
 
     return true;
@@ -73,7 +54,7 @@ void Gateway::stop() {
 
     mSocket->shutdown();
 
-    mReaderHandle.join();
+    mReceiver->stop();
     mSender->stop();
 }
 

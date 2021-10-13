@@ -25,6 +25,10 @@ class ThreadSafeQueue;
 template <typename K, typename T>
 class ThreadSafeUnorderedMap;
 
+struct Client {
+    uint64_t token;
+};
+
 struct SignUpResponse {
     uint64_t clientId;
     uint8_t status;
@@ -71,6 +75,22 @@ class Gateway {
 
     bool isOpen() const;
 
+    uint64_t clientId(const Client& client) const {
+        auto it = mTokenClientIdMap.find(client.token);
+        if (it != mTokenClientIdMap.end())
+            return it->second;
+        else
+            return 0;
+    }
+
+    inline Client createClient(uint64_t clientId = 0) {
+        if (clientId)
+            mTokenClientIdMap.emplace(mTokenCounter, clientId);
+        else
+            mAnonymousTokens.emplace_back(mTokenCounter);
+        return Client{.token = mTokenCounter++};
+    }
+
     bool run(const char* host, uint16_t port);
     void stop();
 
@@ -79,15 +99,15 @@ class Gateway {
 
   private:
     Gateway(uint16_t apiVersion, uint64_t gatewayId,
-            std::vector<SignUpHandler>&& signUpHandlers,
-            std::vector<uint64_t>&& clientIds,
             std::vector<std::pair<uint16_t, RequestHandler>>&& requestHandlers);
 
     uint64_t mGatewayId;
     uint16_t mApiVersion;
-    std::vector<SignUpHandler> mSignUpHandlers;
-    std::vector<uint64_t> mClientIds;
     std::unordered_map<uint16_t, RequestHandler> mRequestHandlerMap;
+
+    uint64_t mTokenCounter = 0;
+    std::vector<uint64_t> mAnonymousTokens;
+    std::unordered_map<uint64_t, uint64_t> mTokenClientIdMap;
 
     std::atomic_bool mStopFlag;
 
@@ -119,16 +139,6 @@ class GatewayBuilder {
         this->mGatewayId = gatewayId;
         return *this;
     }
-    // 对于需要注册的设备，提供注册完成后的回调
-    GatewayBuilder& withSignUpHandler(SignUpHandler&& handler) {
-        mSignUpHandlers.emplace_back(std::move(handler));
-        return *this;
-    }
-    // 对于不需要注册的设备，提供其客户端标识符
-    GatewayBuilder& withClientId(uint64_t clientId) {
-        mClientIds.emplace_back(clientId);
-        return *this;
-    }
     GatewayBuilder& withRequestHandler(uint16_t type, RequestHandler&& handler) {
         mRequestHandlers.emplace_back(std::make_pair(type, std::move(handler)));
         return *this;
@@ -137,8 +147,6 @@ class GatewayBuilder {
         return Gateway(
             mApiVersion,
             mGatewayId,
-            std::move(mSignUpHandlers),
-            std::move(mClientIds),
             std::move(mRequestHandlers));
     }
 
@@ -147,8 +155,6 @@ class GatewayBuilder {
 
     uint64_t mGatewayId = 0;
 
-    std::vector<SignUpHandler> mSignUpHandlers;
-    std::vector<uint64_t> mClientIds;
     std::vector<std::pair<uint16_t, RequestHandler>> mRequestHandlers;
 };
 

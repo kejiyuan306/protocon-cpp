@@ -49,6 +49,7 @@ class Sender {
     }
 
     void stop() {
+        mHandle.join();
     }
 
   private:

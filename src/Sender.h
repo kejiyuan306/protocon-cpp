@@ -13,17 +13,18 @@ namespace Protocon {
 class Sender {
   public:
     Sender(uint16_t apiVersion, uint64_t gatewayId,
-           std::atomic_bool& stopFlag, sockpp::stream_socket&& socket,
+           sockpp::stream_socket&& socket,
            ThreadSafeQueue<std::pair<uint16_t, SentRequest>>& requestRx,
            ThreadSafeQueue<std::pair<uint16_t, SentResponse>>& responseRx)
         : mApiVersion(apiVersion),
           mGatewayId(gatewayId),
-          mStopFlag(stopFlag),
           mSocket(std::move(socket)),
           mRequestRx(requestRx),
           mResponseRx(responseRx) {}
 
     void run() {
+        mStopFlag = false;
+
         mHandle = std::thread([this]() {
             while (mSocket.is_open() && !mStopFlag) {
                 if (!mRequestRx.empty()) {
@@ -49,16 +50,18 @@ class Sender {
     }
 
     void stop() {
+        mStopFlag = true;
         mHandle.join();
     }
 
   private:
     uint16_t mApiVersion;
     uint64_t mGatewayId;
-    std::atomic_bool& mStopFlag;
     sockpp::stream_socket mSocket;
     ThreadSafeQueue<std::pair<uint16_t, SentRequest>>& mRequestRx;
     ThreadSafeQueue<std::pair<uint16_t, SentResponse>>& mResponseRx;
+
+    std::atomic_bool mStopFlag;
 
     std::thread mHandle;
 

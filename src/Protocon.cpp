@@ -22,8 +22,6 @@ bool Gateway::isOpen() const {
 }
 
 bool Gateway::run(const char* host, uint16_t port) {
-    mStopFlag = false;
-
     auto conn = std::make_unique<sockpp::tcp_connector>();
     if (!conn->connect(sockpp::inet_address(host, port))) {
         std::printf("Connect failed, details: %s\n", conn->last_error_str().c_str());
@@ -38,11 +36,11 @@ bool Gateway::run(const char* host, uint16_t port) {
     mSentResponseQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, SentResponse>>>();
 
     mReceiver = std::make_unique<Receiver>(
-        mStopFlag, mSocket->clone(), *mReceivedRequestQueue, *mReceivedResponseQueue);
+        mSocket->clone(), *mReceivedRequestQueue, *mReceivedResponseQueue);
     mReceiver->run();
 
     mSender = std::make_unique<Sender>(
-        mApiVersion, mGatewayId, mStopFlag,
+        mApiVersion, mGatewayId,
         mSocket->clone(), *mSentRequestQueue, *mSentResponseQueue);
     mSender->run();
 
@@ -50,8 +48,6 @@ bool Gateway::run(const char* host, uint16_t port) {
 }
 
 void Gateway::stop() {
-    mStopFlag = true;
-
     mSocket->shutdown();
 
     mReceiver->stop();

@@ -11,12 +11,14 @@ namespace Protocon {
 
 class Receiver {
   public:
-    Receiver(std::atomic_bool& stopFlag, sockpp::stream_socket&& socket,
+    Receiver(sockpp::stream_socket&& socket,
              ThreadSafeQueue<ReceivedRequest>& requestTx,
              ThreadSafeQueue<ReceivedResponse>& responseTx)
-        : mStopFlag(stopFlag), mSocket(std::move(socket)), mRequestTx(requestTx), mResponseTx(responseTx) {}
+        : mSocket(std::move(socket)), mRequestTx(requestTx), mResponseTx(responseTx) {}
 
     void run() {
+        mStopFlag = false;
+
         mHandle = std::thread([this] {
             std::array<char8_t, 1024> buf;
             while (!mStopFlag) {
@@ -106,14 +108,16 @@ class Receiver {
     }
 
     void stop() {
+        mStopFlag = true;
         mHandle.join();
     }
 
   private:
-    std::atomic_bool& mStopFlag;
     sockpp::stream_socket mSocket;
     ThreadSafeQueue<ReceivedRequest>& mRequestTx;
     ThreadSafeQueue<ReceivedResponse>& mResponseTx;
+
+    std::atomic_bool mStopFlag;
 
     std::thread mHandle;
 

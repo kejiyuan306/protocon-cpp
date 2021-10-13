@@ -105,8 +105,6 @@ class Gateway {
     std::vector<uint64_t> mAnonymousTokens;
     std::unordered_map<uint64_t, uint64_t> mTokenClientIdMap;
 
-    std::atomic_bool mStopFlag;
-
     std::unique_ptr<sockpp::stream_socket> mSocket;
 
     std::unique_ptr<Receiver> mReceiver;

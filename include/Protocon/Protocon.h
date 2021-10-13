@@ -25,6 +25,8 @@ class ThreadSafeQueue;
 template <typename K, typename T>
 class ThreadSafeUnorderedMap;
 
+class Sender;
+
 struct Client {
     uint64_t token;
 };
@@ -107,7 +109,7 @@ class Gateway {
     std::unique_ptr<sockpp::stream_socket> mSocket;
 
     std::thread mReaderHandle;
-    std::thread mWriterHandle;
+    std::unique_ptr<Sender> mSender;
 
     uint16_t mCmdIdCounter = 1;
     const uint16_t cMaxCmdId = 0x7fff;

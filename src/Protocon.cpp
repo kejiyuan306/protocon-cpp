@@ -8,7 +8,7 @@
 #include <thread>
 
 #include "Decoder.h"
-#include "Encoder.h"
+#include "Sender.h"
 #include "ThreadSafeQueue.h"
 #include "ThreadSafeUnorderedMap.h"
 #include "Util.h"
@@ -59,33 +59,11 @@ bool Gateway::run(const char* host, uint16_t port) {
             std::printf("Reader closed, details: %s\n", socket.last_error_str().c_str());
     });
 
-    mWriterHandle = std::thread([stopFlag = &mStopFlag,
-                                 socket = mSocket->clone(),
-                                 requestQueue = &mSentRequestQueue,
-                                 responseQueue = &mSentResponseQueue,
-                                 gatewayId = mGatewayId,
-                                 apiVersion = mApiVersion]() mutable {
-        while (socket.is_open() && !*stopFlag) {
-            if (!(*requestQueue)->empty()) {
-                auto [cmdId, r] = (*requestQueue)->pop();
+    mSender = std::make_unique<Sender>(
+        mApiVersion, mGatewayId, mStopFlag,
+        mSocket->clone(), *mSentRequestQueue, *mSentResponseQueue);
 
-                if (!Encoder(socket).encode(cmdId, gatewayId, apiVersion, r)) break;
-            }
-
-            if (!(*responseQueue)->empty()) {
-                auto [cmdId, r] = (*responseQueue)->pop();
-
-                if (!Encoder(socket).encode(cmdId, r)) break;
-            }
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(400));
-        }
-
-        if (*stopFlag)
-            std::printf("Writer closed by shutdown\n");
-        else
-            std::printf("Writer closed, details: %s\n", socket.last_error_str().c_str());
-    });
+    mSender->run();
 
     return true;
 }
@@ -96,7 +74,7 @@ void Gateway::stop() {
     mSocket->shutdown();
 
     mReaderHandle.join();
-    mWriterHandle.join();
+    mSender->stop();
 }
 
 void Gateway::poll() {

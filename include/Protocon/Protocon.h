@@ -75,18 +75,11 @@ class Gateway {
 
     bool isOpen() const;
 
-    uint64_t clientId(const Client& client) const {
-        auto it = mTokenClientIdMap.find(client.token);
-        if (it != mTokenClientIdMap.end())
-            return it->second;
-        else
-            return 0;
-    }
+    uint64_t clientId(const Client& client) const { return mTokenClientIdMap.at(client.token); }
 
     inline Client createClient(uint64_t clientId = 0) {
-        if (clientId)
-            mTokenClientIdMap.emplace(mTokenCounter, clientId);
-        else
+        mTokenClientIdMap.emplace(mTokenCounter, clientId);
+        if (!clientId)
             mAnonymousTokens.emplace_back(mTokenCounter);
         return Client{.token = mTokenCounter++};
     }

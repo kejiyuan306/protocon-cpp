@@ -29,11 +29,11 @@ bool Gateway::run(const char* host, uint16_t port) {
     }
     mSocket = std::move(conn);
 
-    mReceivedRequestQueue = std::make_unique<ThreadSafeQueue<ReceivedRequest>>();
-    mReceivedResponseQueue = std::make_unique<ThreadSafeQueue<ReceivedResponse>>();
+    mReceivedRequestQueue = std::make_unique<ThreadSafeQueue<RequestWrapper>>();
+    mReceivedResponseQueue = std::make_unique<ThreadSafeQueue<ResponseWrapper>>();
 
-    mSentRequestQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, SentRequest>>>();
-    mSentResponseQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, SentResponse>>>();
+    mSentRequestQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, Request>>>();
+    mSentResponseQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, Response>>>();
 
     mReceiver = std::make_unique<Receiver>(
         mSocket->clone(), *mReceivedRequestQueue, *mReceivedResponseQueue,
@@ -57,20 +57,20 @@ void Gateway::stop() {
 
 void Gateway::poll() {
     while (!mReceivedRequestQueue->empty()) {
-        ReceivedRequest r = mReceivedRequestQueue->pop();
+        RequestWrapper r = mReceivedRequestQueue->pop();
 
-        mSentResponseQueue->emplace(std::make_pair(r.commandId ^ 0x8000, mRequestHandlerMap.at(r.type)(r)));
+        mSentResponseQueue->emplace(std::make_pair(r.cmdId ^ 0x8000, mRequestHandlerMap.at(r.request.type)(r.request)));
     }
 
     while (!mReceivedResponseQueue->empty()) {
-        ReceivedResponse r = mReceivedResponseQueue->pop();
+        ResponseWrapper r = mReceivedResponseQueue->pop();
 
-        auto it = mSentRequestResponseHandlerMap.find(r.commandId);
-        mSentRequestResponseHandlerMap.erase(it)->second(r);
+        auto it = mSentRequestResponseHandlerMap.find(r.cmdId);
+        mSentRequestResponseHandlerMap.erase(it)->second(r.response);
     }
 }
 
-void Gateway::send(SentRequest&& r, ResponseHandler&& handler) {
+void Gateway::send(Request&& r, ResponseHandler&& handler) {
     const uint16_t cmdId = mCmdIdCounter++;
     if (mCmdIdCounter > cMaxCmdId)
         mCmdIdCounter = 1;

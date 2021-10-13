@@ -12,10 +12,10 @@ namespace Protocon {
 class Receiver {
   public:
     Receiver(sockpp::stream_socket&& socket,
-             ThreadSafeQueue<ReceivedRequest>& requestTx,
-             ThreadSafeQueue<ReceivedResponse>& responseTx,
-             ThreadSafeQueue<ReceivedSignUpResponse>& signUpResponseTx,
-             ThreadSafeQueue<ReceivedSignInResponse>& signInResponseTx)
+             ThreadSafeQueue<RequestWrapper>& requestTx,
+             ThreadSafeQueue<ResponseWrapper>& responseTx,
+             ThreadSafeQueue<SignUpResponse>& signUpResponseTx,
+             ThreadSafeQueue<SignInResponse>& signInResponseTx)
         : mSocket(std::move(socket)),
           mRequestTx(requestTx),
           mResponseTx(responseTx),
@@ -62,10 +62,10 @@ class Receiver {
 
   private:
     sockpp::stream_socket mSocket;
-    ThreadSafeQueue<ReceivedRequest>& mRequestTx;
-    ThreadSafeQueue<ReceivedResponse>& mResponseTx;
-    ThreadSafeQueue<ReceivedSignUpResponse>& mSignUpResponseTx;
-    ThreadSafeQueue<ReceivedSignInResponse>& mSignInResponseTx;
+    ThreadSafeQueue<RequestWrapper>& mRequestTx;
+    ThreadSafeQueue<ResponseWrapper>& mResponseTx;
+    ThreadSafeQueue<SignUpResponse>& mSignUpResponseTx;
+    ThreadSafeQueue<SignInResponse>& mSignInResponseTx;
 
     std::array<char8_t, 1024> mBuf;
 
@@ -106,22 +106,23 @@ class Receiver {
 
         if (!read(&mBuf, length)) return false;
 
-        mRequestTx.emplace(ReceivedRequest{
-            .commandId = cmdId,
+        mRequestTx.emplace(RequestWrapper{
+            .cmdId = cmdId,
             .gatewayId = gatewayId,
-            .clientId = clientId,
-            .time = time,
             .apiVersion = apiVersion,
-            .type = type,
-            .data = std::u8string(mBuf.data(), length),
-        });
+            Request{
+                .clientId = clientId,
+                .time = time,
+                .type = type,
+                .data = std::u8string(mBuf.data(), length),
+            }});
 
         return true;
     }
 
     inline bool receiveResponse(uint16_t cmdId) {
         // 响应。
-        ReceivedResponse response;
+        ResponseWrapper response;
 
         uint64_t time;
         if (!~mSocket.read_n(&time, sizeof(time))) return false;
@@ -136,12 +137,13 @@ class Receiver {
 
         if (!~mSocket.read_n(&mBuf, length)) return false;
 
-        response = ReceivedResponse{
-            .commandId = cmdId,
-            .time = time,
-            .status = status,
-            .data = std::u8string(mBuf.data(), length),
-        };
+        response = ResponseWrapper{
+            .cmdId = cmdId,
+            .response = Response{
+                .time = time,
+                .status = status,
+                .data = std::u8string(mBuf.data(), length),
+            }};
         mResponseTx.emplace(std::move(response));
 
         return true;
@@ -157,8 +159,8 @@ class Receiver {
         uint8_t status;
         if (!~mSocket.read_n(&status, sizeof(status))) return false;
 
-        mSignUpResponseTx.emplace(ReceivedSignUpResponse{
-            .commandId = cmdId,
+        mSignUpResponseTx.emplace(SignUpResponse{
+            .cmdId = cmdId,
             .clientId = clientId,
             .status = status});
 
@@ -171,8 +173,8 @@ class Receiver {
         uint8_t status;
         if (!~mSocket.read_n(&status, sizeof(status))) return false;
 
-        mSignInResponseTx.emplace(ReceivedSignInResponse{
-            .commandId = cmdId,
+        mSignInResponseTx.emplace(SignInResponse{
+            .cmdId = cmdId,
             .status = status});
 
         return true;

@@ -10,11 +10,10 @@ int main() {
     // 添加 0x0001 的服务端请求处理器
     auto gateway =
         Protocon::GatewayBuilder(2)
-            .withRequestHandler(0x0001, [](const Protocon::ReceivedRequest& r) {
+            .withRequestHandler(0x0001, [](const Protocon::Request& r) {
                 std::printf("Request receivd, data: %s\n", reinterpret_cast<const char*>(r.data.data()));
 
-                return Protocon::SentResponse{
-                    .clientId = 0x0001,
+                return Protocon::Response{
                     .status = 0x00,
                     .data = u8"{}",
                 };
@@ -25,12 +24,12 @@ int main() {
     if (!gateway.run("127.0.0.1", 8081)) return 1;
 
     // 发送一个 0x0001 的客户端请求，并传入回调函数
-    gateway.send(Protocon::SentRequest{
+    gateway.send(Protocon::Request{
                      .clientId = 0x0001,
                      .type = 0x0001,
                      .data = u8"{\"msg\": \"Hello world!\"}",
                  },
-                 [](const Protocon::ReceivedResponse& response) {
+                 [](const Protocon::Response& response) {
                      std::printf("Response received, data: %s\n", reinterpret_cast<const char*>(response.data.data()));
                      stop_flag = true;
                  });

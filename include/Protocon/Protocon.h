@@ -32,49 +32,54 @@ struct Client {
     uint64_t token;
 };
 
-struct ReceivedRequest {
-    uint16_t commandId;
+struct Request {
+    uint64_t clientId;
+    uint64_t time;
+    uint16_t type;
+    std::u8string data;
+};
+
+struct RequestWrapper {
+    uint16_t cmdId;
     uint64_t gatewayId;
-    uint64_t clientId;
-    uint64_t time;
     uint16_t apiVersion;
-    uint16_t type;
-    std::u8string data;
+    Request request;
 };
 
-struct ReceivedResponse {
-    uint16_t commandId;
+struct Response {
     uint64_t time;
     uint8_t status;
     std::u8string data;
 };
 
-struct ReceivedSignUpResponse {
-    uint16_t commandId;
+struct ResponseWrapper {
+    uint16_t cmdId;
+    Response response;
+};
+
+struct SignUpRequest {
+    uint16_t cmdId;
+};
+
+struct SignUpResponse {
+    uint16_t cmdId;
     uint64_t clientId;
     uint8_t status;
 };
 
-struct ReceivedSignInResponse {
-    uint16_t commandId;
+struct SignInRequest {
+    uint16_t cmdId;
+    uint64_t clientId;
+};
+
+struct SignInResponse {
+    uint16_t cmdId;
     uint8_t status;
 };
 
-struct SentRequest {
-    uint64_t clientId;
-    uint16_t type;
-    std::u8string data;
-};
+using RequestHandler = std::function<Response(const Request&)>;
 
-struct SentResponse {
-    uint64_t clientId;
-    uint8_t status;
-    std::u8string data;
-};
-
-using RequestHandler = std::function<SentResponse(const ReceivedRequest&)>;
-
-using ResponseHandler = std::function<void(const ReceivedResponse&)>;
+using ResponseHandler = std::function<void(const Response&)>;
 
 class Gateway {
   public:
@@ -95,7 +100,7 @@ class Gateway {
     void stop();
 
     void poll();
-    void send(SentRequest&& r, ResponseHandler&& handler);
+    void send(Request&& r, ResponseHandler&& handler);
 
   private:
     Gateway(uint16_t apiVersion, uint64_t gatewayId,
@@ -120,14 +125,14 @@ class Gateway {
     std::unordered_map<uint64_t, ResponseHandler> mSentRequestResponseHandlerMap;
 
     // Maintained by Reader
-    std::unique_ptr<ThreadSafeQueue<ReceivedRequest>> mReceivedRequestQueue;
-    std::unique_ptr<ThreadSafeQueue<ReceivedResponse>> mReceivedResponseQueue;
-    std::unique_ptr<ThreadSafeQueue<ReceivedSignUpResponse>> mReceivedSignUpResponseQueue;
-    std::unique_ptr<ThreadSafeQueue<ReceivedSignInResponse>> mReceivedSignInResponseQueue;
+    std::unique_ptr<ThreadSafeQueue<RequestWrapper>> mReceivedRequestQueue;
+    std::unique_ptr<ThreadSafeQueue<ResponseWrapper>> mReceivedResponseQueue;
+    std::unique_ptr<ThreadSafeQueue<SignUpResponse>> mReceivedSignUpResponseQueue;
+    std::unique_ptr<ThreadSafeQueue<SignInResponse>> mReceivedSignInResponseQueue;
 
     // Maintained by Writer
-    std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, SentRequest>>> mSentRequestQueue;
-    std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, SentResponse>>> mSentResponseQueue;
+    std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, Request>>> mSentRequestQueue;
+    std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, Response>>> mSentResponseQueue;
 
     friend class GatewayBuilder;
 };

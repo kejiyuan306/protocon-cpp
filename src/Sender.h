@@ -14,8 +14,8 @@ class Sender {
   public:
     Sender(uint16_t apiVersion, uint64_t gatewayId,
            sockpp::stream_socket&& socket,
-           ThreadSafeQueue<std::pair<uint16_t, SentRequest>>& requestRx,
-           ThreadSafeQueue<std::pair<uint16_t, SentResponse>>& responseRx)
+           ThreadSafeQueue<std::pair<uint16_t, Request>>& requestRx,
+           ThreadSafeQueue<std::pair<uint16_t, Response>>& responseRx)
         : mApiVersion(apiVersion),
           mGatewayId(gatewayId),
           mSocket(std::move(socket)),
@@ -58,8 +58,8 @@ class Sender {
     uint16_t mApiVersion;
     uint64_t mGatewayId;
     sockpp::stream_socket mSocket;
-    ThreadSafeQueue<std::pair<uint16_t, SentRequest>>& mRequestRx;
-    ThreadSafeQueue<std::pair<uint16_t, SentResponse>>& mResponseRx;
+    ThreadSafeQueue<std::pair<uint16_t, Request>>& mRequestRx;
+    ThreadSafeQueue<std::pair<uint16_t, Response>>& mResponseRx;
 
     std::atomic_bool mStopFlag;
 
@@ -70,7 +70,7 @@ class Sender {
         return res && ~res;
     }
 
-    inline bool send(uint16_t cmdId, uint64_t gatewayId, uint16_t apiVersion, const SentRequest& r) {
+    inline bool send(uint16_t cmdId, uint64_t gatewayId, uint16_t apiVersion, const Request& r) {
         cmdId = Util::BigEndian(cmdId);
         if (!write(&cmdId, sizeof(cmdId))) return false;
 
@@ -100,7 +100,7 @@ class Sender {
         return true;
     }
 
-    inline bool send(uint16_t cmdId, const SentResponse& r) {
+    inline bool send(uint16_t cmdId, const Response& r) {
         if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
 
         uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();

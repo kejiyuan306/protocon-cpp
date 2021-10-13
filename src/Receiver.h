@@ -122,8 +122,6 @@ class Receiver {
 
     inline bool receiveResponse(uint16_t cmdId) {
         // 响应。
-        ResponseWrapper response;
-
         uint64_t time;
         if (!~mSocket.read_n(&time, sizeof(time))) return false;
         time = Util::BigEndian(time);
@@ -137,14 +135,13 @@ class Receiver {
 
         if (!~mSocket.read_n(&mBuf, length)) return false;
 
-        response = ResponseWrapper{
+        mResponseTx.emplace(ResponseWrapper{
             .cmdId = cmdId,
             .response = Response{
                 .time = time,
                 .status = status,
                 .data = std::u8string(mBuf.data(), length),
-            }};
-        mResponseTx.emplace(std::move(response));
+            }});
 
         return true;
     }

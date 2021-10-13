@@ -69,8 +69,6 @@ class Gateway {
   public:
     ~Gateway();
 
-    bool stopFlag() const { return mStopFlag; }
-
     bool isOpen() const;
 
     bool run(const char* host, uint16_t port);

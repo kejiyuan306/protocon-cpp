@@ -32,11 +32,6 @@ struct Client {
     uint64_t token;
 };
 
-struct SignUpResponse {
-    uint64_t clientId;
-    uint8_t status;
-};
-
 struct ReceivedRequest {
     uint16_t commandId;
     uint64_t gatewayId;
@@ -54,6 +49,17 @@ struct ReceivedResponse {
     std::u8string data;
 };
 
+struct ReceivedSignUpResponse {
+    uint16_t commandId;
+    uint64_t clientId;
+    uint8_t status;
+};
+
+struct ReceivedSignInResponse {
+    uint16_t commandId;
+    uint8_t status;
+};
+
 struct SentRequest {
     uint64_t clientId;
     uint16_t type;
@@ -65,8 +71,6 @@ struct SentResponse {
     uint8_t status;
     std::u8string data;
 };
-
-using SignUpHandler = std::function<void(const SignUpResponse&)>;
 
 using RequestHandler = std::function<SentResponse(const ReceivedRequest&)>;
 
@@ -118,6 +122,8 @@ class Gateway {
     // Maintained by Reader
     std::unique_ptr<ThreadSafeQueue<ReceivedRequest>> mReceivedRequestQueue;
     std::unique_ptr<ThreadSafeQueue<ReceivedResponse>> mReceivedResponseQueue;
+    std::unique_ptr<ThreadSafeQueue<ReceivedSignUpResponse>> mReceivedSignUpResponseQueue;
+    std::unique_ptr<ThreadSafeQueue<ReceivedSignInResponse>> mReceivedSignInResponseQueue;
 
     // Maintained by Writer
     std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, SentRequest>>> mSentRequestQueue;

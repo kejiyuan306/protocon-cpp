@@ -36,7 +36,8 @@ bool Gateway::run(const char* host, uint16_t port) {
     mSentResponseQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, SentResponse>>>();
 
     mReceiver = std::make_unique<Receiver>(
-        mSocket->clone(), *mReceivedRequestQueue, *mReceivedResponseQueue);
+        mSocket->clone(), *mReceivedRequestQueue, *mReceivedResponseQueue,
+        *mReceivedSignUpResponseQueue, *mReceivedSignInResponseQueue);
     mReceiver->run();
 
     mSender = std::make_unique<Sender>(

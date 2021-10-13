@@ -59,7 +59,7 @@ void Gateway::poll() {
     while (!mReceivedRequestQueue->empty()) {
         RequestWrapper r = mReceivedRequestQueue->pop();
 
-        mSentResponseQueue->emplace(std::make_pair(r.cmdId ^ 0x8000, mRequestHandlerMap.at(r.request.type)(r.request)));
+        mSentResponseQueue->emplace(std::make_pair(r.cmdId, mRequestHandlerMap.at(r.request.type)(r.request)));
     }
 
     while (!mReceivedResponseQueue->empty()) {

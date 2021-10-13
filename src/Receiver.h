@@ -123,8 +123,6 @@ class Receiver {
         // 响应。
         ReceivedResponse response;
 
-        cmdId ^= 0x8000;
-
         uint64_t time;
         if (!~mSocket.read_n(&time, sizeof(time))) return false;
         time = Util::BigEndian(time);

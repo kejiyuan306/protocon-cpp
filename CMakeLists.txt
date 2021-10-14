@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15...3.21)
 
 project(
   Protocon
-  VERSION 2.2.1
+  VERSION 2.3.0
   DESCRIPTION "A C++ implement for Protocon"
   LANGUAGES CXX)
 

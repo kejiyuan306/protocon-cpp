@@ -110,6 +110,11 @@ class Gateway {
     Gateway(uint16_t apiVersion, uint64_t gatewayId,
             std::vector<std::pair<uint16_t, RequestHandler>>&& requestHandlers);
 
+    uint16_t nextCmdId() { return mCmdIdCounter++; }
+
+    void sendSignUpRequest();
+    void sendSignInRequest(uint64_t clientId);
+
     uint64_t mGatewayId;
     uint16_t mApiVersion;
     std::unordered_map<uint16_t, RequestHandler> mRequestHandlerMap;
@@ -124,8 +129,7 @@ class Gateway {
     std::unique_ptr<Receiver> mReceiver;
     std::unique_ptr<Sender> mSender;
 
-    uint16_t mCmdIdCounter = 1;
-    const uint16_t cMaxCmdId = 0x7fff;
+    uint16_t mCmdIdCounter = 0;
 
     std::unordered_map<uint64_t, ResponseHandler> mSentRequestResponseHandlerMap;
 

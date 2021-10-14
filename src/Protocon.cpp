@@ -46,6 +46,15 @@ bool Gateway::run(const char* host, uint16_t port) {
         *mSentSignUpRequestQueue, *mSentSignInRequestQueue);
     mSender->run();
 
+    // 发送登录请求
+    for (const auto& it : mClientIdTokenMap)
+        sendSignInRequest(it.first);
+
+    // 发送注册请求
+    for (const auto& tk : mAnonymousTokens)
+        sendSignUpRequest();
+    mAnonymousTokens.clear();
+
     return true;
 }
 
@@ -75,12 +84,14 @@ void Gateway::poll() {
         auto it = mSentRequestResponseHandlerMap.find(r.cmdId);
         mSentRequestResponseHandlerMap.erase(it)->second(r.response);
     }
+
+    while (!mReceivedSignUpResponseQueue->empty()) {
+        RawSignUpResponse r = mReceivedSignUpResponseQueue->pop();
+    }
 }
 
 void Gateway::send(ClientToken tk, Request&& r, ResponseHandler&& handler) {
-    const uint16_t cmdId = mCmdIdCounter++;
-    if (mCmdIdCounter > cMaxCmdId)
-        mCmdIdCounter = 1;
+    const uint16_t cmdId = nextCmdId();
 
     uint64_t clientId = mTokenClientIdMap.at(tk);
 
@@ -93,6 +104,16 @@ Gateway::Gateway(uint16_t apiVersion, uint64_t gatewayId,
     : mApiVersion(apiVersion), mGatewayId(gatewayId) {
     for (auto&& h : requestHandlers)
         mRequestHandlerMap.emplace(h.first, std::move(h.second));
+}
+
+void Gateway::sendSignUpRequest() {
+    uint16_t cmdId = nextCmdId();
+    mSentSignUpRequestQueue->emplace(RawSignUpRequest{cmdId});
+}
+
+void Gateway::sendSignInRequest(uint64_t clientId) {
+    uint16_t cmdId = nextCmdId();
+    mSentSignInRequestQueue->emplace(RawSignInRequest{cmdId, clientId});
 }
 
 }  // namespace Protocon

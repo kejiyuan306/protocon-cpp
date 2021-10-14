@@ -81,6 +81,7 @@
         "utility": "cpp",
         "vector": "cpp",
         "__functional_03": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "__functional_base_03": "cpp"
     }
 }

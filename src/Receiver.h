@@ -99,7 +99,7 @@ class Receiver {
             .gatewayId = gatewayId,
             .clientId = clientId,
             .apiVersion = apiVersion,
-            Request{
+            .request = Request{
                 .time = time,
                 .type = type,
                 .data = std::u8string(mBuf.data(), length),

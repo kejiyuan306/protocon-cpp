@@ -31,7 +31,7 @@ struct CommandWrapper;
 class Sender;
 class Receiver;
 
-struct Client {
+struct ClientToken {
     uint64_t token;
 };
 
@@ -90,13 +90,13 @@ class Gateway {
 
     bool isOpen() const;
 
-    uint64_t clientId(const Client& client) const { return mTokenClientIdMap.at(client.token); }
+    uint64_t clientId(const ClientToken& tk) const { return mTokenClientIdMap.at(tk.token); }
 
-    inline Client createClient(uint64_t clientId = 0) {
+    inline ClientToken createClientToken(uint64_t clientId = 0) {
         mTokenClientIdMap.emplace(mTokenCounter, clientId);
         if (!clientId)
             mAnonymousTokens.emplace_back(mTokenCounter);
-        return Client{.token = mTokenCounter++};
+        return ClientToken{.token = mTokenCounter++};
     }
 
     bool run(const char* host, uint16_t port);

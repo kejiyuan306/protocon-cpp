@@ -77,6 +77,9 @@ class Sender {
     }
 
     inline bool send(uint16_t cmdId, uint64_t gatewayId, uint16_t apiVersion, const Request& r) {
+        uint8_t cmdFlag = 0x00;
+        if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
+
         cmdId = Util::BigEndian(cmdId);
         if (!write(&cmdId, sizeof(cmdId))) return false;
 
@@ -107,6 +110,9 @@ class Sender {
     }
 
     inline bool send(uint16_t cmdId, const Response& r) {
+        uint8_t cmdFlag = 0x80;
+        if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
+
         if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
 
         uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();

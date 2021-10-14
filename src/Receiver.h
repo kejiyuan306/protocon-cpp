@@ -4,6 +4,10 @@
 
 #include <atomic>
 
+#include "RawRequest.h"
+#include "RawResponse.h"
+#include "RawSignInResponse.h"
+#include "RawSignUpResponse.h"
 #include "ThreadSafeQueue.h"
 #include "Util.h"
 

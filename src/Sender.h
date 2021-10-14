@@ -6,6 +6,10 @@
 #include <string>
 #include <utility>
 
+#include "RawRequest.h"
+#include "RawResponse.h"
+#include "RawSignInRequest.h"
+#include "RawSignUpRequest.h"
 #include "ThreadSafeQueue.h"
 
 namespace Protocon {

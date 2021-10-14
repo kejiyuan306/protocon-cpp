@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Protocon/ClientToken.h>
+#include <Protocon/Request.h>
+#include <Protocon/Response.h>
 
 #include <atomic>
 #include <cstdint>
@@ -30,52 +32,12 @@ class ThreadSafeUnorderedMap;
 class Sender;
 class Receiver;
 
-struct Request {
-    uint64_t time;
-    uint16_t type;
-    std::u8string data;
-};
-
-struct RawRequest {
-    uint16_t cmdId;
-    uint64_t gatewayId;
-    uint64_t clientId;
-    uint16_t apiVersion;
-    Request request;
-};
-
-struct Response {
-    uint64_t time;
-    uint8_t status;
-    std::u8string data;
-};
-
-struct RawResponse {
-    uint16_t cmdId;
-    Response response;
-};
-
-struct RawSignUpRequest {
-    uint16_t cmdId;
-    uint64_t gatewayId;
-};
-
-struct RawSignUpResponse {
-    uint16_t cmdId;
-    uint64_t clientId;
-    uint8_t status;
-};
-
-struct RawSignInRequest {
-    uint16_t cmdId;
-    uint64_t gatewayId;
-    uint64_t clientId;
-};
-
-struct RawSignInResponse {
-    uint16_t cmdId;
-    uint8_t status;
-};
+struct RawRequest;
+struct RawResponse;
+struct RawSignUpRequest;
+struct RawSignUpResponse;
+struct RawSignInRequest;
+struct RawSignInResponse;
 
 using RequestHandler = std::function<Response(ClientToken, const Request&)>;
 

@@ -21,12 +21,16 @@ class Sender {
     Sender(uint16_t apiVersion, uint64_t gatewayId,
            sockpp::stream_socket&& socket,
            ThreadSafeQueue<CommandWrapper<Request>>& requestRx,
-           ThreadSafeQueue<CommandWrapper<Response>>& responseRx)
+           ThreadSafeQueue<CommandWrapper<Response>>& responseRx,
+           ThreadSafeQueue<RawSignUpRequest>& signUpRequestRx,
+           ThreadSafeQueue<RawSignInRequest>& signInRequestRx)
         : mApiVersion(apiVersion),
           mGatewayId(gatewayId),
           mSocket(std::move(socket)),
           mRequestRx(requestRx),
-          mResponseRx(responseRx) {}
+          mResponseRx(responseRx),
+          mSignUpRequestRx(signUpRequestRx),
+          mSignInRequestRx(signInRequestRx) {}
 
     void run() {
         mStopFlag = false;
@@ -43,6 +47,18 @@ class Sender {
                     auto wrapper = mResponseRx.pop();
 
                     if (!send(wrapper.cmdId, wrapper.value)) break;
+                }
+
+                if (!mSignUpRequestRx.empty()) {
+                    auto r = mSignUpRequestRx.pop();
+
+                    if (!send(mGatewayId, r)) break;
+                }
+
+                if (!mSignInRequestRx.empty()) {
+                    auto r = mSignInRequestRx.pop();
+
+                    if (!send(mGatewayId, r)) break;
                 }
 
                 std::this_thread::sleep_for(std::chrono::milliseconds(400));
@@ -66,6 +82,8 @@ class Sender {
     sockpp::stream_socket mSocket;
     ThreadSafeQueue<CommandWrapper<Request>>& mRequestRx;
     ThreadSafeQueue<CommandWrapper<Response>>& mResponseRx;
+    ThreadSafeQueue<RawSignUpRequest>& mSignUpRequestRx;
+    ThreadSafeQueue<RawSignInRequest>& mSignInRequestRx;
 
     std::atomic_bool mStopFlag;
 
@@ -124,6 +142,35 @@ class Sender {
         if (!~mSocket.write_n(&length, sizeof(length))) return false;
 
         if (!~mSocket.write_n(r.data.data(), length)) return false;
+
+        return true;
+    }
+
+    inline bool send(uint64_t gatewayId, const RawSignUpRequest& r) {
+        uint8_t cmdFlag = 0x01;
+        if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
+
+        uint16_t cmdId = Util::BigEndian(r.cmdId);
+        if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
+
+        gatewayId = Util::BigEndian(gatewayId);
+        if (!write(&gatewayId, sizeof(gatewayId))) return false;
+
+        return true;
+    }
+
+    inline bool send(uint64_t gatewayId, const RawSignInRequest& r) {
+        uint8_t cmdFlag = 0x02;
+        if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
+
+        uint16_t cmdId = Util::BigEndian(r.cmdId);
+        if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
+
+        gatewayId = Util::BigEndian(gatewayId);
+        if (!write(&gatewayId, sizeof(gatewayId))) return false;
+
+        uint64_t clientId = Util::BigEndian(r.clientId);
+        if (!write(&clientId, sizeof(clientId))) return false;
 
         return true;
     }

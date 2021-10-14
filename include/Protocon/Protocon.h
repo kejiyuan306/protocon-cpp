@@ -136,6 +136,8 @@ class Gateway {
     // Maintained by Writer
     std::unique_ptr<ThreadSafeQueue<CommandWrapper<Request>>> mSentRequestQueue;
     std::unique_ptr<ThreadSafeQueue<CommandWrapper<Response>>> mSentResponseQueue;
+    std::unique_ptr<ThreadSafeQueue<RawSignUpRequest>> mSentSignUpRequestQueue;
+    std::unique_ptr<ThreadSafeQueue<RawSignInRequest>> mSentSignInRequestQueue;
 
     friend class GatewayBuilder;
 };

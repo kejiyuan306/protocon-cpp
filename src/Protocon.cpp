@@ -41,8 +41,9 @@ bool Gateway::run(const char* host, uint16_t port) {
     mReceiver->run();
 
     mSender = std::make_unique<Sender>(
-        mApiVersion, mGatewayId,
-        mSocket->clone(), *mSentRequestQueue, *mSentResponseQueue);
+        mApiVersion, mGatewayId, mSocket->clone(),
+        *mSentRequestQueue, *mSentResponseQueue,
+        *mSentSignUpRequestQueue, *mSentSignInRequestQueue);
     mSender->run();
 
     return true;

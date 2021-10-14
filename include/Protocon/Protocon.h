@@ -29,16 +29,6 @@ class ThreadSafeQueue;
 template <typename K, typename T>
 class ThreadSafeUnorderedMap;
 
-class Sender;
-class Receiver;
-
-struct RawRequest;
-struct RawResponse;
-struct RawSignUpRequest;
-struct RawSignUpResponse;
-struct RawSignInRequest;
-struct RawSignInResponse;
-
 using RequestHandler = std::function<Response(ClientToken, const Request&)>;
 
 using ResponseHandler = std::function<void(const Response&)>;
@@ -90,24 +80,24 @@ class Gateway {
 
     std::unique_ptr<sockpp::stream_socket> mSocket;
 
-    std::unique_ptr<Receiver> mReceiver;
-    std::unique_ptr<Sender> mSender;
+    std::unique_ptr<class Receiver> mReceiver;
+    std::unique_ptr<class Sender> mSender;
 
     uint16_t mCmdIdCounter = 0;
 
     std::unordered_map<uint64_t, ResponseHandler> mRequestResponseHandlerMap;
 
     // Maintained by Reader
-    std::unique_ptr<ThreadSafeQueue<RawRequest>> mRequestRx;
-    std::unique_ptr<ThreadSafeQueue<RawResponse>> mResponseRx;
-    std::unique_ptr<ThreadSafeQueue<RawSignUpResponse>> mSignUpResponseRx;
-    std::unique_ptr<ThreadSafeQueue<RawSignInResponse>> mSignInResponseRx;
+    std::unique_ptr<ThreadSafeQueue<struct RawRequest>> mRequestRx;
+    std::unique_ptr<ThreadSafeQueue<struct RawResponse>> mResponseRx;
+    std::unique_ptr<ThreadSafeQueue<struct RawSignUpResponse>> mSignUpResponseRx;
+    std::unique_ptr<ThreadSafeQueue<struct RawSignInResponse>> mSignInResponseRx;
 
     // Maintained by Writer
-    std::unique_ptr<ThreadSafeQueue<RawRequest>> mRequestTx;
-    std::unique_ptr<ThreadSafeQueue<RawResponse>> mResponseTx;
-    std::unique_ptr<ThreadSafeQueue<RawSignUpRequest>> mSignUpRequestTx;
-    std::unique_ptr<ThreadSafeQueue<RawSignInRequest>> mSignInRequestTx;
+    std::unique_ptr<ThreadSafeQueue<struct RawRequest>> mRequestTx;
+    std::unique_ptr<ThreadSafeQueue<struct RawResponse>> mResponseTx;
+    std::unique_ptr<ThreadSafeQueue<struct RawSignUpRequest>> mSignUpRequestTx;
+    std::unique_ptr<ThreadSafeQueue<struct RawSignInRequest>> mSignInRequestTx;
 
     friend class GatewayBuilder;
 };

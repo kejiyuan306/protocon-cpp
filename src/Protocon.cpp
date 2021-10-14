@@ -88,6 +88,10 @@ void Gateway::poll() {
     while (!mReceivedSignUpResponseQueue->empty()) {
         RawSignUpResponse r = mReceivedSignUpResponseQueue->pop();
     }
+
+    while (!mReceivedSignInResponseQueue->empty()) {
+        RawSignInResponse r = mReceivedSignInResponseQueue->pop();
+    }
 }
 
 void Gateway::send(ClientToken tk, Request&& r, ResponseHandler&& handler) {

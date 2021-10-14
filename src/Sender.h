@@ -37,29 +37,17 @@ class Sender {
 
         mHandle = std::thread([this]() {
             while (mSocket.is_open() && !mStopFlag) {
-                if (!mRequestRx.empty()) {
-                    auto wrapper = mRequestRx.pop();
+                if (!mRequestRx.empty())
+                    if (!send(mRequestRx.pop())) break;
 
-                    if (!send(wrapper.cmdId, mGatewayId, mApiVersion, wrapper.value)) break;
-                }
+                if (!mResponseRx.empty())
+                    if (!send(mResponseRx.pop())) break;
 
-                if (!mResponseRx.empty()) {
-                    auto wrapper = mResponseRx.pop();
+                if (!mSignUpRequestRx.empty())
+                    if (!send(mSignUpRequestRx.pop())) break;
 
-                    if (!send(wrapper.cmdId, wrapper.value)) break;
-                }
-
-                if (!mSignUpRequestRx.empty()) {
-                    auto r = mSignUpRequestRx.pop();
-
-                    if (!send(mGatewayId, r)) break;
-                }
-
-                if (!mSignInRequestRx.empty()) {
-                    auto r = mSignInRequestRx.pop();
-
-                    if (!send(mGatewayId, r)) break;
-                }
+                if (!mSignInRequestRx.empty())
+                    if (!send(mSignInRequestRx.pop())) break;
 
                 std::this_thread::sleep_for(std::chrono::milliseconds(400));
             }
@@ -94,14 +82,16 @@ class Sender {
         return res && ~res;
     }
 
-    inline bool send(uint16_t cmdId, uint64_t gatewayId, uint16_t apiVersion, const Request& r) {
+    inline bool send(const CommandWrapper<Request>& wrapper) {
+        const Request& r = wrapper.value;
+
         uint8_t cmdFlag = 0x00;
         if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
 
-        cmdId = Util::BigEndian(cmdId);
+        uint16_t cmdId = Util::BigEndian(wrapper.cmdId);
         if (!write(&cmdId, sizeof(cmdId))) return false;
 
-        gatewayId = Util::BigEndian(gatewayId);
+        uint64_t gatewayId = Util::BigEndian(gatewayId);
         if (!write(&gatewayId, sizeof(gatewayId))) return false;
 
         uint64_t clientId = Util::BigEndian(r.clientId);
@@ -111,7 +101,7 @@ class Sender {
         time = Util::BigEndian(time);
         if (!write(&time, sizeof(time))) return false;
 
-        apiVersion = Util::BigEndian(apiVersion);
+        uint16_t apiVersion = Util::BigEndian(mApiVersion);
         if (!write(&apiVersion, sizeof(apiVersion))) return false;
 
         uint16_t type = Util::BigEndian(r.type);
@@ -127,11 +117,13 @@ class Sender {
         return true;
     }
 
-    inline bool send(uint16_t cmdId, const Response& r) {
+    inline bool send(const CommandWrapper<Response>& wrapper) {
+        Response r = wrapper.value;
+
         uint8_t cmdFlag = 0x80;
         if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
 
-        cmdId = Util::BigEndian(cmdId);
+        uint16_t cmdId = Util::BigEndian(wrapper.cmdId);
         if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
 
         uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -149,27 +141,27 @@ class Sender {
         return true;
     }
 
-    inline bool send(uint64_t gatewayId, const RawSignUpRequest& r) {
+    inline bool send(const RawSignUpRequest& r) {
         uint8_t cmdFlag = 0x01;
         if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
 
         uint16_t cmdId = Util::BigEndian(r.cmdId);
         if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
 
-        gatewayId = Util::BigEndian(gatewayId);
+        uint64_t gatewayId = Util::BigEndian(mGatewayId);
         if (!write(&gatewayId, sizeof(gatewayId))) return false;
 
         return true;
     }
 
-    inline bool send(uint64_t gatewayId, const RawSignInRequest& r) {
+    inline bool send(const RawSignInRequest& r) {
         uint8_t cmdFlag = 0x02;
         if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
 
         uint16_t cmdId = Util::BigEndian(r.cmdId);
         if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
 
-        gatewayId = Util::BigEndian(gatewayId);
+        uint64_t gatewayId = Util::BigEndian(mGatewayId);
         if (!write(&gatewayId, sizeof(gatewayId))) return false;
 
         uint64_t clientId = Util::BigEndian(r.clientId);

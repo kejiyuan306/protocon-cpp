@@ -109,9 +109,9 @@ class Receiver {
         mRequestTx.emplace(RawRequest{
             .cmdId = cmdId,
             .gatewayId = gatewayId,
+            .clientId = clientId,
             .apiVersion = apiVersion,
             Request{
-                .clientId = clientId,
                 .time = time,
                 .type = type,
                 .data = std::u8string(mBuf.data(), length),

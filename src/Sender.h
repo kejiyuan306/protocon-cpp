@@ -10,18 +10,12 @@
 
 namespace Protocon {
 
-template <typename T>
-struct CommandWrapper {
-    uint16_t cmdId;
-    T value;
-};
-
 class Sender {
   public:
     Sender(uint16_t apiVersion, uint64_t gatewayId,
            sockpp::stream_socket&& socket,
-           ThreadSafeQueue<CommandWrapper<Request>>& requestRx,
-           ThreadSafeQueue<CommandWrapper<Response>>& responseRx,
+           ThreadSafeQueue<RawRequest>& requestRx,
+           ThreadSafeQueue<RawResponse>& responseRx,
            ThreadSafeQueue<RawSignUpRequest>& signUpRequestRx,
            ThreadSafeQueue<RawSignInRequest>& signInRequestRx)
         : mApiVersion(apiVersion),
@@ -68,8 +62,8 @@ class Sender {
     uint16_t mApiVersion;
     uint64_t mGatewayId;
     sockpp::stream_socket mSocket;
-    ThreadSafeQueue<CommandWrapper<Request>>& mRequestRx;
-    ThreadSafeQueue<CommandWrapper<Response>>& mResponseRx;
+    ThreadSafeQueue<RawRequest>& mRequestRx;
+    ThreadSafeQueue<RawResponse>& mResponseRx;
     ThreadSafeQueue<RawSignUpRequest>& mSignUpRequestRx;
     ThreadSafeQueue<RawSignInRequest>& mSignInRequestRx;
 
@@ -82,19 +76,19 @@ class Sender {
         return res && ~res;
     }
 
-    inline bool send(const CommandWrapper<Request>& wrapper) {
-        const Request& r = wrapper.value;
+    inline bool send(const RawRequest& rawRequest) {
+        const Request& r = rawRequest.request;
 
         uint8_t cmdFlag = 0x00;
         if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
 
-        uint16_t cmdId = Util::BigEndian(wrapper.cmdId);
+        uint16_t cmdId = Util::BigEndian(rawRequest.cmdId);
         if (!write(&cmdId, sizeof(cmdId))) return false;
 
         uint64_t gatewayId = Util::BigEndian(gatewayId);
         if (!write(&gatewayId, sizeof(gatewayId))) return false;
 
-        uint64_t clientId = Util::BigEndian(r.clientId);
+        uint64_t clientId = Util::BigEndian(rawRequest.clientId);
         if (!write(&clientId, sizeof(clientId))) return false;
 
         uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -117,13 +111,13 @@ class Sender {
         return true;
     }
 
-    inline bool send(const CommandWrapper<Response>& wrapper) {
-        Response r = wrapper.value;
+    inline bool send(const RawResponse& rawResponse) {
+        Response r = rawResponse.response;
 
         uint8_t cmdFlag = 0x80;
         if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
 
-        uint16_t cmdId = Util::BigEndian(wrapper.cmdId);
+        uint16_t cmdId = Util::BigEndian(rawResponse.cmdId);
         if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
 
         uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Protocon/ClientToken.h>
+
 #include <atomic>
 #include <cstdint>
 #include <functional>
@@ -25,18 +27,10 @@ class ThreadSafeQueue;
 template <typename K, typename T>
 class ThreadSafeUnorderedMap;
 
-template <typename T>
-struct CommandWrapper;
-
 class Sender;
 class Receiver;
 
-struct ClientToken {
-    uint64_t token;
-};
-
 struct Request {
-    uint64_t clientId;
     uint64_t time;
     uint16_t type;
     std::u8string data;
@@ -45,6 +39,7 @@ struct Request {
 struct RawRequest {
     uint16_t cmdId;
     uint64_t gatewayId;
+    uint64_t clientId;
     uint16_t apiVersion;
     Request request;
 };
@@ -80,7 +75,7 @@ struct RawSignInResponse {
     uint8_t status;
 };
 
-using RequestHandler = std::function<Response(const Request&)>;
+using RequestHandler = std::function<Response(ClientToken, const Request&)>;
 
 using ResponseHandler = std::function<void(const Response&)>;
 
@@ -90,20 +85,26 @@ class Gateway {
 
     bool isOpen() const;
 
-    uint64_t clientId(const ClientToken& tk) const { return mTokenClientIdMap.at(tk.token); }
+    uint64_t clientId(ClientToken tk) const { return mTokenClientIdMap.at(tk); }
 
     inline ClientToken createClientToken(uint64_t clientId = 0) {
-        mTokenClientIdMap.emplace(mTokenCounter, clientId);
-        if (!clientId)
-            mAnonymousTokens.emplace_back(mTokenCounter);
-        return ClientToken{.token = mTokenCounter++};
+        auto tk = ClientToken{mTokenCounter++};
+
+        mTokenClientIdMap.emplace(tk, clientId);
+
+        if (clientId)
+            mClientIdTokenMap.emplace(clientId, tk);
+        else
+            mAnonymousTokens.emplace_back(tk);
+
+        return tk;
     }
 
     bool run(const char* host, uint16_t port);
     void stop();
 
     void poll();
-    void send(Request&& r, ResponseHandler&& handler);
+    void send(ClientToken tk, Request&& r, ResponseHandler&& handler);
 
   private:
     Gateway(uint16_t apiVersion, uint64_t gatewayId,
@@ -114,8 +115,9 @@ class Gateway {
     std::unordered_map<uint16_t, RequestHandler> mRequestHandlerMap;
 
     uint64_t mTokenCounter = 0;
-    std::vector<uint64_t> mAnonymousTokens;
-    std::unordered_map<uint64_t, uint64_t> mTokenClientIdMap;
+    std::vector<ClientToken> mAnonymousTokens;
+    std::unordered_map<ClientToken, uint64_t> mTokenClientIdMap;
+    std::unordered_map<uint64_t, ClientToken> mClientIdTokenMap;
 
     std::unique_ptr<sockpp::stream_socket> mSocket;
 
@@ -134,8 +136,8 @@ class Gateway {
     std::unique_ptr<ThreadSafeQueue<RawSignInResponse>> mReceivedSignInResponseQueue;
 
     // Maintained by Writer
-    std::unique_ptr<ThreadSafeQueue<CommandWrapper<Request>>> mSentRequestQueue;
-    std::unique_ptr<ThreadSafeQueue<CommandWrapper<Response>>> mSentResponseQueue;
+    std::unique_ptr<ThreadSafeQueue<RawRequest>> mSentRequestQueue;
+    std::unique_ptr<ThreadSafeQueue<RawResponse>> mSentResponseQueue;
     std::unique_ptr<ThreadSafeQueue<RawSignUpRequest>> mSentSignUpRequestQueue;
     std::unique_ptr<ThreadSafeQueue<RawSignInRequest>> mSentSignInRequestQueue;
 

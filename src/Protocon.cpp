@@ -32,8 +32,8 @@ bool Gateway::run(const char* host, uint16_t port) {
     mReceivedRequestQueue = std::make_unique<ThreadSafeQueue<RawRequest>>();
     mReceivedResponseQueue = std::make_unique<ThreadSafeQueue<RawResponse>>();
 
-    mSentRequestQueue = std::make_unique<ThreadSafeQueue<CommandWrapper<Request>>>();
-    mSentResponseQueue = std::make_unique<ThreadSafeQueue<CommandWrapper<Response>>>();
+    mSentRequestQueue = std::make_unique<ThreadSafeQueue<RawRequest>>();
+    mSentResponseQueue = std::make_unique<ThreadSafeQueue<RawResponse>>();
 
     mReceiver = std::make_unique<Receiver>(
         mSocket->clone(), *mReceivedRequestQueue, *mReceivedResponseQueue,
@@ -60,7 +60,13 @@ void Gateway::poll() {
     while (!mReceivedRequestQueue->empty()) {
         RawRequest r = mReceivedRequestQueue->pop();
 
-        mSentResponseQueue->emplace(CommandWrapper<Response>{r.cmdId, mRequestHandlerMap.at(r.request.type)(r.request)});
+        auto clientIdIt = mClientIdTokenMap.find(r.clientId);
+        auto handlerIt = mRequestHandlerMap.find(r.request.type);
+        if (clientIdIt != mClientIdTokenMap.end() && handlerIt != mRequestHandlerMap.end())
+            mSentResponseQueue->emplace(
+                RawResponse{
+                    r.cmdId,
+                    (handlerIt->second)(ClientToken{clientIdIt->second}, r.request)});
     }
 
     while (!mReceivedResponseQueue->empty()) {
@@ -71,13 +77,15 @@ void Gateway::poll() {
     }
 }
 
-void Gateway::send(Request&& r, ResponseHandler&& handler) {
+void Gateway::send(ClientToken tk, Request&& r, ResponseHandler&& handler) {
     const uint16_t cmdId = mCmdIdCounter++;
     if (mCmdIdCounter > cMaxCmdId)
         mCmdIdCounter = 1;
 
+    uint64_t clientId = mTokenClientIdMap.at(tk);
+
     mSentRequestResponseHandlerMap.emplace(cmdId, std::move(handler));
-    mSentRequestQueue->emplace(CommandWrapper<Request>{cmdId, std::move(r)});
+    mSentRequestQueue->emplace(RawRequest{cmdId, mGatewayId, clientId, mApiVersion, std::move(r)});
 }
 
 Gateway::Gateway(uint16_t apiVersion, uint64_t gatewayId,

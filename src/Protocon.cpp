@@ -29,21 +29,21 @@ bool Gateway::run(const char* host, uint16_t port) {
     }
     mSocket = std::move(conn);
 
-    mReceivedRequestQueue = std::make_unique<ThreadSafeQueue<RawRequest>>();
-    mReceivedResponseQueue = std::make_unique<ThreadSafeQueue<RawResponse>>();
+    mRequestRx = std::make_unique<ThreadSafeQueue<RawRequest>>();
+    mResponseRx = std::make_unique<ThreadSafeQueue<RawResponse>>();
 
-    mSentRequestQueue = std::make_unique<ThreadSafeQueue<RawRequest>>();
-    mSentResponseQueue = std::make_unique<ThreadSafeQueue<RawResponse>>();
+    mRequestTx = std::make_unique<ThreadSafeQueue<RawRequest>>();
+    mResponseTx = std::make_unique<ThreadSafeQueue<RawResponse>>();
 
     mReceiver = std::make_unique<Receiver>(
-        mSocket->clone(), *mReceivedRequestQueue, *mReceivedResponseQueue,
-        *mReceivedSignUpResponseQueue, *mReceivedSignInResponseQueue);
+        mSocket->clone(), *mRequestRx, *mResponseRx,
+        *mSignUpResponseRx, *mSignInResponseRx);
     mReceiver->run();
 
     mSender = std::make_unique<Sender>(
         mSocket->clone(),
-        *mSentRequestQueue, *mSentResponseQueue,
-        *mSentSignUpRequestQueue, *mSentSignInRequestQueue);
+        *mRequestTx, *mResponseTx,
+        *mSignUpRequestTx, *mSignInRequestTx);
     mSender->run();
 
     // 发送登录请求
@@ -66,31 +66,31 @@ void Gateway::stop() {
 }
 
 void Gateway::poll() {
-    while (!mReceivedRequestQueue->empty()) {
-        RawRequest r = mReceivedRequestQueue->pop();
+    while (!mRequestRx->empty()) {
+        RawRequest r = mRequestRx->pop();
 
         auto clientIdIt = mClientIdTokenMap.find(r.clientId);
         auto handlerIt = mRequestHandlerMap.find(r.request.type);
         if (clientIdIt != mClientIdTokenMap.end() && handlerIt != mRequestHandlerMap.end())
-            mSentResponseQueue->emplace(
+            mResponseTx->emplace(
                 RawResponse{
                     r.cmdId,
                     (handlerIt->second)(ClientToken{clientIdIt->second}, r.request)});
     }
 
-    while (!mReceivedResponseQueue->empty()) {
-        RawResponse r = mReceivedResponseQueue->pop();
+    while (!mResponseRx->empty()) {
+        RawResponse r = mResponseRx->pop();
 
-        auto it = mSentRequestResponseHandlerMap.find(r.cmdId);
-        mSentRequestResponseHandlerMap.erase(it)->second(r.response);
+        auto it = mRequestResponseHandlerMap.find(r.cmdId);
+        mRequestResponseHandlerMap.erase(it)->second(r.response);
     }
 
-    while (!mReceivedSignUpResponseQueue->empty()) {
-        RawSignUpResponse r = mReceivedSignUpResponseQueue->pop();
+    while (!mSignUpResponseRx->empty()) {
+        RawSignUpResponse r = mSignUpResponseRx->pop();
     }
 
-    while (!mReceivedSignInResponseQueue->empty()) {
-        RawSignInResponse r = mReceivedSignInResponseQueue->pop();
+    while (!mSignInResponseRx->empty()) {
+        RawSignInResponse r = mSignInResponseRx->pop();
     }
 }
 
@@ -99,8 +99,8 @@ void Gateway::send(ClientToken tk, Request&& r, ResponseHandler&& handler) {
 
     uint64_t clientId = mTokenClientIdMap.at(tk);
 
-    mSentRequestResponseHandlerMap.emplace(cmdId, std::move(handler));
-    mSentRequestQueue->emplace(RawRequest{cmdId, mGatewayId, clientId, mApiVersion, std::move(r)});
+    mRequestResponseHandlerMap.emplace(cmdId, std::move(handler));
+    mRequestTx->emplace(RawRequest{cmdId, mGatewayId, clientId, mApiVersion, std::move(r)});
 }
 
 Gateway::Gateway(uint16_t apiVersion, uint64_t gatewayId,
@@ -112,12 +112,12 @@ Gateway::Gateway(uint16_t apiVersion, uint64_t gatewayId,
 
 void Gateway::sendSignUpRequest() {
     uint16_t cmdId = nextCmdId();
-    mSentSignUpRequestQueue->emplace(RawSignUpRequest{cmdId, mGatewayId});
+    mSignUpRequestTx->emplace(RawSignUpRequest{cmdId, mGatewayId});
 }
 
 void Gateway::sendSignInRequest(uint64_t clientId) {
     uint16_t cmdId = nextCmdId();
-    mSentSignInRequestQueue->emplace(RawSignInRequest{cmdId, mGatewayId, clientId});
+    mSignInRequestTx->emplace(RawSignInRequest{cmdId, mGatewayId, clientId});
 }
 
 }  // namespace Protocon

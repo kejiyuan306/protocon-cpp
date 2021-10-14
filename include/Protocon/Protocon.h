@@ -133,19 +133,19 @@ class Gateway {
 
     uint16_t mCmdIdCounter = 0;
 
-    std::unordered_map<uint64_t, ResponseHandler> mSentRequestResponseHandlerMap;
+    std::unordered_map<uint64_t, ResponseHandler> mRequestResponseHandlerMap;
 
     // Maintained by Reader
-    std::unique_ptr<ThreadSafeQueue<RawRequest>> mReceivedRequestQueue;
-    std::unique_ptr<ThreadSafeQueue<RawResponse>> mReceivedResponseQueue;
-    std::unique_ptr<ThreadSafeQueue<RawSignUpResponse>> mReceivedSignUpResponseQueue;
-    std::unique_ptr<ThreadSafeQueue<RawSignInResponse>> mReceivedSignInResponseQueue;
+    std::unique_ptr<ThreadSafeQueue<RawRequest>> mRequestRx;
+    std::unique_ptr<ThreadSafeQueue<RawResponse>> mResponseRx;
+    std::unique_ptr<ThreadSafeQueue<RawSignUpResponse>> mSignUpResponseRx;
+    std::unique_ptr<ThreadSafeQueue<RawSignInResponse>> mSignInResponseRx;
 
     // Maintained by Writer
-    std::unique_ptr<ThreadSafeQueue<RawRequest>> mSentRequestQueue;
-    std::unique_ptr<ThreadSafeQueue<RawResponse>> mSentResponseQueue;
-    std::unique_ptr<ThreadSafeQueue<RawSignUpRequest>> mSentSignUpRequestQueue;
-    std::unique_ptr<ThreadSafeQueue<RawSignInRequest>> mSentSignInRequestQueue;
+    std::unique_ptr<ThreadSafeQueue<RawRequest>> mRequestTx;
+    std::unique_ptr<ThreadSafeQueue<RawResponse>> mResponseTx;
+    std::unique_ptr<ThreadSafeQueue<RawSignUpRequest>> mSignUpRequestTx;
+    std::unique_ptr<ThreadSafeQueue<RawSignInRequest>> mSignInRequestTx;
 
     friend class GatewayBuilder;
 };

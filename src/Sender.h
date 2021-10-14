@@ -12,15 +12,12 @@ namespace Protocon {
 
 class Sender {
   public:
-    Sender(uint16_t apiVersion, uint64_t gatewayId,
-           sockpp::stream_socket&& socket,
+    Sender(sockpp::stream_socket&& socket,
            ThreadSafeQueue<RawRequest>& requestRx,
            ThreadSafeQueue<RawResponse>& responseRx,
            ThreadSafeQueue<RawSignUpRequest>& signUpRequestRx,
            ThreadSafeQueue<RawSignInRequest>& signInRequestRx)
-        : mApiVersion(apiVersion),
-          mGatewayId(gatewayId),
-          mSocket(std::move(socket)),
+        : mSocket(std::move(socket)),
           mRequestRx(requestRx),
           mResponseRx(responseRx),
           mSignUpRequestRx(signUpRequestRx),
@@ -83,7 +80,7 @@ class Sender {
         time = Util::BigEndian(time);
         if (!write(&time, sizeof(time))) return false;
 
-        uint16_t apiVersion = Util::BigEndian(mApiVersion);
+        uint16_t apiVersion = Util::BigEndian(rawRequest.apiVersion);
         if (!write(&apiVersion, sizeof(apiVersion))) return false;
 
         uint16_t type = Util::BigEndian(r.type);
@@ -130,7 +127,7 @@ class Sender {
         uint16_t cmdId = Util::BigEndian(r.cmdId);
         if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
 
-        uint64_t gatewayId = Util::BigEndian(mGatewayId);
+        uint64_t gatewayId = Util::BigEndian(r.gatewayId);
         if (!write(&gatewayId, sizeof(gatewayId))) return false;
 
         return true;
@@ -143,7 +140,7 @@ class Sender {
         uint16_t cmdId = Util::BigEndian(r.cmdId);
         if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
 
-        uint64_t gatewayId = Util::BigEndian(mGatewayId);
+        uint64_t gatewayId = Util::BigEndian(r.gatewayId);
         if (!write(&gatewayId, sizeof(gatewayId))) return false;
 
         uint64_t clientId = Util::BigEndian(r.clientId);
@@ -152,8 +149,6 @@ class Sender {
         return true;
     }
 
-    uint16_t mApiVersion;
-    uint64_t mGatewayId;
     sockpp::stream_socket mSocket;
     ThreadSafeQueue<RawRequest>& mRequestRx;
     ThreadSafeQueue<RawResponse>& mResponseRx;

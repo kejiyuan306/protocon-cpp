@@ -57,6 +57,7 @@ struct RawResponse {
 
 struct RawSignUpRequest {
     uint16_t cmdId;
+    uint64_t gatewayId;
 };
 
 struct RawSignUpResponse {
@@ -67,6 +68,7 @@ struct RawSignUpResponse {
 
 struct RawSignInRequest {
     uint16_t cmdId;
+    uint64_t gatewayId;
     uint64_t clientId;
 };
 

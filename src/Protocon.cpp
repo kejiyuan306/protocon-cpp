@@ -41,7 +41,7 @@ bool Gateway::run(const char* host, uint16_t port) {
     mReceiver->run();
 
     mSender = std::make_unique<Sender>(
-        mApiVersion, mGatewayId, mSocket->clone(),
+        mSocket->clone(),
         *mSentRequestQueue, *mSentResponseQueue,
         *mSentSignUpRequestQueue, *mSentSignInRequestQueue);
     mSender->run();
@@ -108,12 +108,12 @@ Gateway::Gateway(uint16_t apiVersion, uint64_t gatewayId,
 
 void Gateway::sendSignUpRequest() {
     uint16_t cmdId = nextCmdId();
-    mSentSignUpRequestQueue->emplace(RawSignUpRequest{cmdId});
+    mSentSignUpRequestQueue->emplace(RawSignUpRequest{cmdId, mGatewayId});
 }
 
 void Gateway::sendSignInRequest(uint64_t clientId) {
     uint16_t cmdId = nextCmdId();
-    mSentSignInRequestQueue->emplace(RawSignInRequest{cmdId, clientId});
+    mSentSignInRequestQueue->emplace(RawSignInRequest{cmdId, mGatewayId, clientId});
 }
 
 }  // namespace Protocon

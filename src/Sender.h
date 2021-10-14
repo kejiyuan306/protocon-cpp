@@ -59,18 +59,6 @@ class Sender {
     }
 
   private:
-    uint16_t mApiVersion;
-    uint64_t mGatewayId;
-    sockpp::stream_socket mSocket;
-    ThreadSafeQueue<RawRequest>& mRequestRx;
-    ThreadSafeQueue<RawResponse>& mResponseRx;
-    ThreadSafeQueue<RawSignUpRequest>& mSignUpRequestRx;
-    ThreadSafeQueue<RawSignInRequest>& mSignInRequestRx;
-
-    std::atomic_bool mStopFlag;
-
-    std::thread mHandle;
-
     inline bool write(const void* buf, size_t n) {
         auto res = mSocket.write_n(buf, n);
         return res && ~res;
@@ -163,6 +151,18 @@ class Sender {
 
         return true;
     }
+
+    uint16_t mApiVersion;
+    uint64_t mGatewayId;
+    sockpp::stream_socket mSocket;
+    ThreadSafeQueue<RawRequest>& mRequestRx;
+    ThreadSafeQueue<RawResponse>& mResponseRx;
+    ThreadSafeQueue<RawSignUpRequest>& mSignUpRequestRx;
+    ThreadSafeQueue<RawSignInRequest>& mSignInRequestRx;
+
+    std::atomic_bool mStopFlag;
+
+    std::thread mHandle;
 };
 
 }  // namespace Protocon

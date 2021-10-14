@@ -61,18 +61,6 @@ class Receiver {
     }
 
   private:
-    sockpp::stream_socket mSocket;
-    ThreadSafeQueue<RawRequest>& mRequestTx;
-    ThreadSafeQueue<RawResponse>& mResponseTx;
-    ThreadSafeQueue<RawSignUpResponse>& mSignUpResponseTx;
-    ThreadSafeQueue<RawSignInResponse>& mSignInResponseTx;
-
-    std::array<char8_t, 1024> mBuf;
-
-    std::atomic_bool mStopFlag;
-
-    std::thread mHandle;
-
     inline bool read(void* buf, size_t n) {
         auto res = mSocket.read_n(buf, n);
         return res && ~res;
@@ -176,6 +164,18 @@ class Receiver {
 
         return true;
     }
+
+    sockpp::stream_socket mSocket;
+    ThreadSafeQueue<RawRequest>& mRequestTx;
+    ThreadSafeQueue<RawResponse>& mResponseTx;
+    ThreadSafeQueue<RawSignUpResponse>& mSignUpResponseTx;
+    ThreadSafeQueue<RawSignInResponse>& mSignInResponseTx;
+
+    std::array<char8_t, 1024> mBuf;
+
+    std::atomic_bool mStopFlag;
+
+    std::thread mHandle;
 };
 
 }  // namespace Protocon

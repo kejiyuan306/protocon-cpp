@@ -10,12 +10,18 @@
 
 namespace Protocon {
 
+template <typename T>
+struct CommandWrapper {
+    uint16_t cmdId;
+    T value;
+};
+
 class Sender {
   public:
     Sender(uint16_t apiVersion, uint64_t gatewayId,
            sockpp::stream_socket&& socket,
-           ThreadSafeQueue<std::pair<uint16_t, Request>>& requestRx,
-           ThreadSafeQueue<std::pair<uint16_t, Response>>& responseRx)
+           ThreadSafeQueue<CommandWrapper<Request>>& requestRx,
+           ThreadSafeQueue<CommandWrapper<Response>>& responseRx)
         : mApiVersion(apiVersion),
           mGatewayId(gatewayId),
           mSocket(std::move(socket)),
@@ -28,15 +34,15 @@ class Sender {
         mHandle = std::thread([this]() {
             while (mSocket.is_open() && !mStopFlag) {
                 if (!mRequestRx.empty()) {
-                    auto [cmdId, r] = mRequestRx.pop();
+                    auto wrapper = mRequestRx.pop();
 
-                    if (!send(cmdId, mGatewayId, mApiVersion, r)) break;
+                    if (!send(wrapper.cmdId, mGatewayId, mApiVersion, wrapper.value)) break;
                 }
 
                 if (!mResponseRx.empty()) {
-                    auto [cmdId, r] = mResponseRx.pop();
+                    auto wrapper = mResponseRx.pop();
 
-                    if (!send(cmdId, r)) break;
+                    if (!send(wrapper.cmdId, wrapper.value)) break;
                 }
 
                 std::this_thread::sleep_for(std::chrono::milliseconds(400));
@@ -58,8 +64,8 @@ class Sender {
     uint16_t mApiVersion;
     uint64_t mGatewayId;
     sockpp::stream_socket mSocket;
-    ThreadSafeQueue<std::pair<uint16_t, Request>>& mRequestRx;
-    ThreadSafeQueue<std::pair<uint16_t, Response>>& mResponseRx;
+    ThreadSafeQueue<CommandWrapper<Request>>& mRequestRx;
+    ThreadSafeQueue<CommandWrapper<Response>>& mResponseRx;
 
     std::atomic_bool mStopFlag;
 

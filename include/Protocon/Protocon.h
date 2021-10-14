@@ -25,6 +25,9 @@ class ThreadSafeQueue;
 template <typename K, typename T>
 class ThreadSafeUnorderedMap;
 
+template <typename T>
+struct CommandWrapper;
+
 class Sender;
 class Receiver;
 
@@ -131,8 +134,8 @@ class Gateway {
     std::unique_ptr<ThreadSafeQueue<RawSignInResponse>> mReceivedSignInResponseQueue;
 
     // Maintained by Writer
-    std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, Request>>> mSentRequestQueue;
-    std::unique_ptr<ThreadSafeQueue<std::pair<uint16_t, Response>>> mSentResponseQueue;
+    std::unique_ptr<ThreadSafeQueue<CommandWrapper<Request>>> mSentRequestQueue;
+    std::unique_ptr<ThreadSafeQueue<CommandWrapper<Response>>> mSentResponseQueue;
 
     friend class GatewayBuilder;
 };

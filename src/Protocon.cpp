@@ -32,8 +32,8 @@ bool Gateway::run(const char* host, uint16_t port) {
     mReceivedRequestQueue = std::make_unique<ThreadSafeQueue<RawRequest>>();
     mReceivedResponseQueue = std::make_unique<ThreadSafeQueue<RawResponse>>();
 
-    mSentRequestQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, Request>>>();
-    mSentResponseQueue = std::make_unique<ThreadSafeQueue<std::pair<uint16_t, Response>>>();
+    mSentRequestQueue = std::make_unique<ThreadSafeQueue<CommandWrapper<Request>>>();
+    mSentResponseQueue = std::make_unique<ThreadSafeQueue<CommandWrapper<Response>>>();
 
     mReceiver = std::make_unique<Receiver>(
         mSocket->clone(), *mReceivedRequestQueue, *mReceivedResponseQueue,
@@ -59,7 +59,7 @@ void Gateway::poll() {
     while (!mReceivedRequestQueue->empty()) {
         RawRequest r = mReceivedRequestQueue->pop();
 
-        mSentResponseQueue->emplace(std::make_pair(r.cmdId, mRequestHandlerMap.at(r.request.type)(r.request)));
+        mSentResponseQueue->emplace(CommandWrapper<Response>{r.cmdId, mRequestHandlerMap.at(r.request.type)(r.request)});
     }
 
     while (!mReceivedResponseQueue->empty()) {
@@ -76,13 +76,12 @@ void Gateway::send(Request&& r, ResponseHandler&& handler) {
         mCmdIdCounter = 1;
 
     mSentRequestResponseHandlerMap.emplace(cmdId, std::move(handler));
-    mSentRequestQueue->emplace(std::make_pair(cmdId, std::move(r)));
+    mSentRequestQueue->emplace(CommandWrapper<Request>{cmdId, std::move(r)});
 }
 
 Gateway::Gateway(uint16_t apiVersion, uint64_t gatewayId,
                  std::vector<std::pair<uint16_t, RequestHandler>>&& requestHandlers)
     : mApiVersion(apiVersion), mGatewayId(gatewayId) {
-    // TODO: 处理注册登录
     for (auto&& h : requestHandlers)
         mRequestHandlerMap.emplace(h.first, std::move(h.second));
 }

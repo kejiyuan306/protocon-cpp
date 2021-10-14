@@ -53,7 +53,6 @@ bool Gateway::run(const char* host, uint16_t port) {
     // 发送注册请求
     for (const auto& tk : mAnonymousTokens)
         sendSignUpRequest();
-    mAnonymousTokens.clear();
 
     return true;
 }
@@ -87,10 +86,28 @@ void Gateway::poll() {
 
     while (!mSignUpResponseRx->empty()) {
         RawSignUpResponse r = mSignUpResponseRx->pop();
+
+        if (!r.status) {
+            // 注册成功
+            auto tk = mAnonymousTokens.back();
+            mAnonymousTokens.pop_back();
+            mTokenClientIdMap[tk] = r.clientId;
+            mClientIdTokenMap.emplace(r.clientId, tk);
+            sendSignInRequest(r.clientId);
+
+            printf("注册成功，client Id：%lld\n", r.clientId);
+        } else {
+            printf("注册失败，状态码：%02x\n", r.status);
+        }
     }
 
     while (!mSignInResponseRx->empty()) {
         RawSignInResponse r = mSignInResponseRx->pop();
+
+        if (!r.status)
+            printf("登录成功\n");
+        else
+            printf("登录失败，状态码：%02x\n", r.status);
     }
 }
 

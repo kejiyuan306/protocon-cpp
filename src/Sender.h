@@ -131,6 +131,7 @@ class Sender {
         uint8_t cmdFlag = 0x80;
         if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
 
+        cmdId = Util::BigEndian(cmdId);
         if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
 
         uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -139,7 +140,9 @@ class Sender {
         if (!~mSocket.write_n(&r.status, sizeof(r.status))) return false;
 
         uint32_t length = r.data.length();
+        length = Util::BigEndian(length);
         if (!~mSocket.write_n(&length, sizeof(length))) return false;
+        length = Util::BigEndian(length);
 
         if (!~mSocket.write_n(r.data.data(), length)) return false;
 

@@ -15,7 +15,7 @@ int main() {
 
                 return Protocon::Response{
                     .status = 0x00,
-                    .data = u8"{}",
+                    .data = "{}",
                 };
             })
             .build();
@@ -28,7 +28,7 @@ int main() {
     // 发送一个 0x0001 的客户端请求，并传入回调函数
     gateway.send(tk, Protocon::Request{
                          .type = 0x0001,
-                         .data = u8"{\"msg\": \"Hello world!\"}",
+                         .data = "{\"msg\": \"Hello world!\"}",
                      },
                  [](const Protocon::Response& response) {
                      std::printf("Response received, data: %s\n", reinterpret_cast<const char*>(response.data.data()));

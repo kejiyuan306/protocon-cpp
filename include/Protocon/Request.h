@@ -8,7 +8,7 @@ namespace Protocon {
 struct Request {
     uint64_t time;
     uint16_t type;
-    std::u8string data;
+    std::string data;
 };
 
 }  // namespace Protocon

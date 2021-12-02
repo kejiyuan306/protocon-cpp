@@ -106,7 +106,7 @@ class Receiver {
             .request = Request{
                 .time = time,
                 .type = type,
-                .data = std::u8string(mBuf.data(), length),
+                .data = std::string(mBuf.data(), length),
             }});
 
         return true;
@@ -132,7 +132,7 @@ class Receiver {
             .response = Response{
                 .time = time,
                 .status = status,
-                .data = std::u8string(mBuf.data(), length),
+                .data = std::string(mBuf.data(), length),
             }});
 
         return true;
@@ -175,7 +175,7 @@ class Receiver {
     ThreadSafeQueue<RawSignUpResponse>& mSignUpResponseTx;
     ThreadSafeQueue<RawSignInResponse>& mSignInResponseTx;
 
-    std::array<char8_t, 1024> mBuf;
+    std::array<char, 1024> mBuf;
 
     std::atomic_bool mStopFlag;
 

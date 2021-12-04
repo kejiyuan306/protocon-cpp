@@ -1,6 +1,8 @@
 #pragma once
 
+#include <asio/buffer.hpp>
 #include <asio/ip/tcp.hpp>
+#include <asio/write.hpp>
 #include <atomic>
 #include <cstddef>
 #include <exception>
@@ -10,8 +12,6 @@
 
 #include "RawCommand.h"
 #include "ThreadSafeQueue.h"
-#include "asio/buffer.hpp"
-#include "asio/write.hpp"
 
 namespace Protocon {
 

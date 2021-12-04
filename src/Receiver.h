@@ -4,6 +4,7 @@
 #include <asio/buffer.hpp>
 #include <asio/ip/tcp.hpp>
 #include <asio/read.hpp>
+#include <asio/system_error.hpp>
 #include <atomic>
 #include <cstdio>
 #include <exception>
@@ -14,7 +15,6 @@
 #include "RawCommand.h"
 #include "ThreadSafeQueue.h"
 #include "Util.h"
-#include "asio/system_error.hpp"
 
 namespace Protocon {
 

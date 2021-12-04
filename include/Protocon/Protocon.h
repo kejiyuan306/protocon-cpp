@@ -69,8 +69,8 @@ class Gateway {
     void sendSignUpRequest();
     void sendSignInRequest(uint64_t clientId);
 
-    uint64_t mGatewayId;
     uint16_t mApiVersion;
+    uint64_t mGatewayId;
     std::unordered_map<uint16_t, RequestHandler> mRequestHandlerMap;
 
     uint64_t mTokenCounter = 0;

@@ -11,10 +11,7 @@
 #include <thread>
 #include <utility>
 
-#include "RawRequest.h"
-#include "RawResponse.h"
-#include "RawSignInResponse.h"
-#include "RawSignUpResponse.h"
+#include "RawCommand.h"
 #include "ThreadSafeQueue.h"
 #include "Util.h"
 #include "asio/system_error.hpp"

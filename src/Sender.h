@@ -8,10 +8,7 @@
 #include <thread>
 #include <utility>
 
-#include "RawRequest.h"
-#include "RawResponse.h"
-#include "RawSignInRequest.h"
-#include "RawSignUpRequest.h"
+#include "RawCommand.h"
 #include "ThreadSafeQueue.h"
 #include "asio/buffer.hpp"
 #include "asio/write.hpp"

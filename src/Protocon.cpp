@@ -51,7 +51,7 @@ bool Gateway::run(const char* host, uint16_t port) {
         sendSignInRequest(it.first);
 
     // 发送注册请求
-    for (const auto& tk : mAnonymousTokens)
+    for (auto i = 0; i < mAnonymousTokens.size(); i++)
         sendSignUpRequest();
 
     return true;

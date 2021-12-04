@@ -1,9 +1,13 @@
 #pragma once
 
-#include <sockpp/stream_socket.h>
-
 #include <array>
+#include <asio/buffer.hpp>
+#include <asio/ip/tcp.hpp>
+#include <asio/read.hpp>
 #include <atomic>
+#include <cstdio>
+#include <exception>
+#include <iostream>
 #include <thread>
 #include <utility>
 
@@ -13,17 +17,18 @@
 #include "RawSignUpResponse.h"
 #include "ThreadSafeQueue.h"
 #include "Util.h"
+#include "asio/system_error.hpp"
 
 namespace Protocon {
 
 class Receiver {
   public:
-    Receiver(sockpp::stream_socket&& socket,
+    Receiver(asio::ip::tcp::socket& socket,
              ThreadSafeQueue<RawRequest>& requestTx,
              ThreadSafeQueue<RawResponse>& responseTx,
              ThreadSafeQueue<RawSignUpResponse>& signUpResponseTx,
              ThreadSafeQueue<RawSignInResponse>& signInResponseTx)
-        : mSocket(std::move(socket)),
+        : mSocket(socket),
           mRequestTx(requestTx),
           mResponseTx(responseTx),
           mSignUpResponseTx(signUpResponseTx),
@@ -58,7 +63,7 @@ class Receiver {
             if (mStopFlag)
                 std::printf("Reader closed by shutdown\n");
             else
-                std::printf("Reader closed, details: %s\n", mSocket.last_error_str().c_str());
+                std::printf("Reader closed by error\n");
         });
     }
 
@@ -69,8 +74,14 @@ class Receiver {
 
   private:
     inline bool read(void* buf, size_t n) {
-        auto res = mSocket.read_n(buf, n);
-        return res && ~res;
+        std::size_t len;
+        try {
+            len = asio::read(mSocket, asio::buffer(buf, n));
+        } catch (std::exception& e) {
+            std::fprintf(stderr, "Reader error occurs, details: %s\n", e.what());
+            return false;
+        }
+        return len;
     }
 
     inline bool receiveRequest(uint16_t cmdId) {
@@ -118,17 +129,17 @@ class Receiver {
     inline bool receiveResponse(uint16_t cmdId) {
         // 响应。
         uint64_t time;
-        if (!~mSocket.read_n(&time, sizeof(time))) return false;
+        if (!read(&time, sizeof(time))) return false;
         time = Util::BigEndian(time);
 
         uint8_t status;
-        if (!~mSocket.read_n(&status, sizeof(status))) return false;
+        if (!read(&status, sizeof(status))) return false;
 
         uint32_t length;
-        if (!~mSocket.read_n(&length, sizeof(length))) return false;
+        if (!read(&length, sizeof(length))) return false;
         length = Util::BigEndian(length);
 
-        if (!~mSocket.read_n(&mBuf, length)) return false;
+        if (!read(&mBuf, length)) return false;
 
         mResponseTx.emplace(RawResponse{
             .cmdId = cmdId,
@@ -149,7 +160,7 @@ class Receiver {
         clientId = Util::BigEndian(clientId);
 
         uint8_t status;
-        if (!~mSocket.read_n(&status, sizeof(status))) return false;
+        if (!read(&status, sizeof(status))) return false;
 
         mSignUpResponseTx.emplace(RawSignUpResponse{
             .cmdId = cmdId,
@@ -163,7 +174,7 @@ class Receiver {
         // 登录响应
 
         uint8_t status;
-        if (!~mSocket.read_n(&status, sizeof(status))) return false;
+        if (!read(&status, sizeof(status))) return false;
 
         mSignInResponseTx.emplace(RawSignInResponse{
             .cmdId = cmdId,
@@ -172,7 +183,7 @@ class Receiver {
         return true;
     }
 
-    sockpp::stream_socket mSocket;
+    asio::ip::tcp::socket& mSocket;
     ThreadSafeQueue<RawRequest>& mRequestTx;
     ThreadSafeQueue<RawResponse>& mResponseTx;
     ThreadSafeQueue<RawSignUpResponse>& mSignUpResponseTx;

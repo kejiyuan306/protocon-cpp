@@ -1,8 +1,9 @@
 #pragma once
 
-#include <sockpp/tcp_connector.h>
-
+#include <asio/ip/tcp.hpp>
 #include <atomic>
+#include <cstddef>
+#include <exception>
 #include <string>
 #include <thread>
 #include <utility>
@@ -12,17 +13,19 @@
 #include "RawSignInRequest.h"
 #include "RawSignUpRequest.h"
 #include "ThreadSafeQueue.h"
+#include "asio/buffer.hpp"
+#include "asio/write.hpp"
 
 namespace Protocon {
 
 class Sender {
   public:
-    Sender(sockpp::stream_socket&& socket,
+    Sender(asio::ip::tcp::socket& socket,
            ThreadSafeQueue<RawRequest>& requestRx,
            ThreadSafeQueue<RawResponse>& responseRx,
            ThreadSafeQueue<RawSignUpRequest>& signUpRequestRx,
            ThreadSafeQueue<RawSignInRequest>& signInRequestRx)
-        : mSocket(std::move(socket)),
+        : mSocket(socket),
           mRequestRx(requestRx),
           mResponseRx(responseRx),
           mSignUpRequestRx(signUpRequestRx),
@@ -51,7 +54,7 @@ class Sender {
             if (mStopFlag)
                 std::printf("Writer closed by shutdown\n");
             else
-                std::printf("Writer closed, details: %s\n", mSocket.last_error_str().c_str());
+                std::printf("Writer closed by error\n");
         });
     }
 
@@ -62,8 +65,14 @@ class Sender {
 
   private:
     inline bool write(const void* buf, size_t n) {
-        auto res = mSocket.write_n(buf, n);
-        return res && ~res;
+        std::size_t len;
+        try {
+            len = asio::write(mSocket, asio::buffer(buf, n));
+        } catch (std::exception& e) {
+            std::fprintf(stderr, "Writer error occurs, details: %s\n", e.what());
+            return false;
+        }
+        return len;
     }
 
     inline bool send(const RawRequest& rawRequest) {
@@ -108,19 +117,19 @@ class Sender {
         if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
 
         uint16_t cmdId = Util::BigEndian(rawResponse.cmdId);
-        if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
+        if (!write(&cmdId, sizeof(cmdId))) return false;
 
         uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-        if (!~mSocket.write_n(&time, sizeof(time))) return false;
+        if (!write(&time, sizeof(time))) return false;
 
-        if (!~mSocket.write_n(&r.status, sizeof(r.status))) return false;
+        if (!write(&r.status, sizeof(r.status))) return false;
 
         uint32_t length = r.data.length();
         length = Util::BigEndian(length);
-        if (!~mSocket.write_n(&length, sizeof(length))) return false;
+        if (!write(&length, sizeof(length))) return false;
         length = Util::BigEndian(length);
 
-        if (!~mSocket.write_n(r.data.data(), length)) return false;
+        if (!write(r.data.data(), length)) return false;
 
         return true;
     }
@@ -130,7 +139,7 @@ class Sender {
         if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
 
         uint16_t cmdId = Util::BigEndian(r.cmdId);
-        if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
+        if (!write(&cmdId, sizeof(cmdId))) return false;
 
         uint64_t gatewayId = Util::BigEndian(r.gatewayId);
         if (!write(&gatewayId, sizeof(gatewayId))) return false;
@@ -143,7 +152,7 @@ class Sender {
         if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
 
         uint16_t cmdId = Util::BigEndian(r.cmdId);
-        if (!~mSocket.write_n(&cmdId, sizeof(cmdId))) return false;
+        if (!write(&cmdId, sizeof(cmdId))) return false;
 
         uint64_t gatewayId = Util::BigEndian(r.gatewayId);
         if (!write(&gatewayId, sizeof(gatewayId))) return false;
@@ -154,7 +163,7 @@ class Sender {
         return true;
     }
 
-    sockpp::stream_socket mSocket;
+    asio::ip::tcp::socket& mSocket;
     ThreadSafeQueue<RawRequest>& mRequestRx;
     ThreadSafeQueue<RawResponse>& mResponseRx;
     ThreadSafeQueue<RawSignUpRequest>& mSignUpRequestRx;

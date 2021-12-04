@@ -1,14 +1,15 @@
 #include <Protocon/Protocon.h>
-#include <sockpp/tcp_connector.h>
 
 #include <array>
 #include <chrono>
 #include <cstddef>
 #include <cstdio>
+#include <memory>
 #include <thread>
 
 #include "Receiver.h"
 #include "Sender.h"
+#include "Socket.h"
 #include "ThreadSafeQueue.h"
 #include "ThreadSafeUnorderedMap.h"
 #include "Util.h"
@@ -22,12 +23,9 @@ bool Gateway::isOpen() const {
 }
 
 bool Gateway::run(const char* host, uint16_t port) {
-    auto conn = std::make_unique<sockpp::tcp_connector>();
-    if (!conn->connect(sockpp::inet_address(host, port))) {
-        std::printf("Connect failed, details: %s\n", conn->last_error_str().c_str());
+    mSocket = std::make_unique<Socket>();
+    if (!mSocket->connect(host, port))
         return false;
-    }
-    mSocket = std::move(conn);
 
     mRequestRx = std::make_unique<ThreadSafeQueue<RawRequest>>();
     mResponseRx = std::make_unique<ThreadSafeQueue<RawResponse>>();
@@ -36,12 +34,12 @@ bool Gateway::run(const char* host, uint16_t port) {
     mResponseTx = std::make_unique<ThreadSafeQueue<RawResponse>>();
 
     mReceiver = std::make_unique<Receiver>(
-        mSocket->clone(), *mRequestRx, *mResponseRx,
+        mSocket->socket(), *mRequestRx, *mResponseRx,
         *mSignUpResponseRx, *mSignInResponseRx);
     mReceiver->run();
 
     mSender = std::make_unique<Sender>(
-        mSocket->clone(),
+        mSocket->socket(),
         *mRequestTx, *mResponseTx,
         *mSignUpRequestTx, *mSignInRequestTx);
     mSender->run();
@@ -58,7 +56,7 @@ bool Gateway::run(const char* host, uint16_t port) {
 }
 
 void Gateway::stop() {
-    mSocket->shutdown();
+    mSocket.reset();
 
     mReceiver->stop();
     mSender->stop();

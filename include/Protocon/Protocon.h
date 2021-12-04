@@ -15,13 +15,9 @@
 #include <utility>
 #include <vector>
 
-namespace sockpp {
-
-class stream_socket;
-
-}
-
 namespace Protocon {
+
+class Socket;
 
 template <typename T>
 class ThreadSafeQueue;
@@ -78,7 +74,7 @@ class Gateway {
     std::unordered_map<ClientToken, uint64_t> mTokenClientIdMap;
     std::unordered_map<uint64_t, ClientToken> mClientIdTokenMap;
 
-    std::unique_ptr<sockpp::stream_socket> mSocket;
+    std::unique_ptr<Socket> mSocket;
 
     std::unique_ptr<class Receiver> mReceiver;
     std::unique_ptr<class Sender> mSender;

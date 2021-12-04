@@ -12,6 +12,7 @@
 
 #include "RawCommand.h"
 #include "ThreadSafeQueue.h"
+#include "Util.h"
 
 namespace Protocon {
 

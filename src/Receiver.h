@@ -2,7 +2,10 @@
 
 #include <sockpp/stream_socket.h>
 
+#include <array>
 #include <atomic>
+#include <thread>
+#include <utility>
 
 #include "RawRequest.h"
 #include "RawResponse.h"

@@ -4,6 +4,7 @@
 
 #include <atomic>
 #include <string>
+#include <thread>
 #include <utility>
 
 #include "RawRequest.h"

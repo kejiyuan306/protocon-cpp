@@ -75,7 +75,7 @@ class Sender {
         uint16_t cmdId = Util::BigEndian(rawRequest.cmdId);
         if (!write(&cmdId, sizeof(cmdId))) return false;
 
-        uint64_t gatewayId = Util::BigEndian(gatewayId);
+        uint64_t gatewayId = Util::BigEndian(rawRequest.gatewayId);
         if (!write(&gatewayId, sizeof(gatewayId))) return false;
 
         uint64_t clientId = Util::BigEndian(rawRequest.clientId);

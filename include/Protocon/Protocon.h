@@ -31,6 +31,7 @@ using ResponseHandler = std::function<void(const Response&)>;
 
 class Gateway {
   public:
+    Gateway(Gateway&& gateway);
     ~Gateway();
 
     bool isOpen() const;

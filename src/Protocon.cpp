@@ -16,6 +16,9 @@
 
 namespace Protocon {
 
+
+Gateway::Gateway(Gateway&& gateway) = default;
+
 Gateway::~Gateway() = default;
 
 bool Gateway::isOpen() const {

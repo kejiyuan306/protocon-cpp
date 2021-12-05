@@ -18,37 +18,37 @@
 
 ## Quick start
 
-Clone the repository
+Clone 该仓库。
 
 ```shell
 $ git clone https://github.com/kejiyuan306/protocon-cpp
 ```
 
-Navigate to project directory.
+切换工作路径到项目目录。
 
 ```shell
 $ cd protocon-cpp
 ```
 
-Build the project.
+构建项目。
 
 ```shell
 $ xmake -ay
 ```
 
-Run tests.
+运行测试。
 
 ```shell
 $ xmake run Tests
 ```
 
-Run benchmarks
+运行 benchmarks。
 
 ```shell
 $ xmake run Benches
 ```
 
-The project can be installed as follows.
+可以使用如下命令安装本类库。
 
 ```shell
 $ xmake install

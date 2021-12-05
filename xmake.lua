@@ -6,7 +6,7 @@ set_xmakever("2.5.9")
 add_requires("asio 1.20.0")
 
 set_warnings("all", "error")
-set_languages("cxx20")
+set_languages("cxx14")
 
 target("Protocon")
     set_kind("static")

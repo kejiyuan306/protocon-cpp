@@ -2,6 +2,7 @@
 
 #include <array>
 #include <chrono>
+#include <cinttypes>
 #include <cstddef>
 #include <cstdio>
 #include <memory>
@@ -95,7 +96,7 @@ void Gateway::poll() {
             mClientIdTokenMap.emplace(r.clientId, tk);
             sendSignInRequest(r.clientId);
 
-            printf("注册成功，client Id：%lld\n", r.clientId);
+            printf("注册成功，client Id：%" PRIu64 "\n", r.clientId);
         } else {
             printf("注册失败，状态码：%02x\n", r.status);
         }

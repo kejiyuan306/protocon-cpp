@@ -1,6 +1,6 @@
 # Protocon
 
-[![C++ CI with CMake](https://github.com/kejiyuan306/protocon-cpp/actions/workflows/cmake.yml/badge.svg)](https://github.com/kejiyuan306/protocon-cpp/actions/workflows/cmake.yml)
+[![C++ CI with xmake](https://github.com/kejiyuan306/protocon-cpp/actions/workflows/xmake.yml/badge.svg)](https://github.com/kejiyuan306/protocon-cpp/actions/workflows/xmake.yml)
 
 本项目是 Protocon 协议的 C++ 实现，对于发送命令请求与接受命令响应进行了简单的封装。
 

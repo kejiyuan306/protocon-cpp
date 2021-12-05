@@ -39,16 +39,19 @@ class Util {
     static uint16_t BigEndian(uint16_t v) {
         if (!IsBigEndian())
             return bswap_16(v);
+        return v;
     }
 
     static uint32_t BigEndian(uint32_t v) {
         if (!IsBigEndian())
             return bswap_32(v);
+        return v;
     }
 
     static uint64_t BigEndian(uint64_t v) {
         if (!IsBigEndian())
             return bswap_64(v);
+        return v;
     }
 
   private:

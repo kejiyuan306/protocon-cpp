@@ -27,22 +27,28 @@ namespace Protocon {
 
 class Util {
   public:
+    static bool IsBigEndian() {
+        union {
+            uint32_t i;
+            char c[4];
+        } bint = {0x01020304};
+
+        return bint.c[0] == 1;
+    }
+
     static uint16_t BigEndian(uint16_t v) {
-        if constexpr (std::endian::native == std::endian::little) {
+        if (!IsBigEndian())
             return bswap_16(v);
-        }
     }
 
     static uint32_t BigEndian(uint32_t v) {
-        if constexpr (std::endian::native == std::endian::little) {
+        if (!IsBigEndian())
             return bswap_32(v);
-        }
     }
 
     static uint64_t BigEndian(uint64_t v) {
-        if constexpr (std::endian::native == std::endian::little) {
+        if (!IsBigEndian())
             return bswap_64(v);
-        }
     }
 
   private:

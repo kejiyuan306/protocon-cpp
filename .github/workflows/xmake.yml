@@ -17,7 +17,7 @@ jobs:
           xmake-version: "2.5.9"
       - name: Build
         shell: bash
-        run: xmake -y
+        run: xmake -ay
       - name: Test
         shell: bash
         run: xmake run Tests

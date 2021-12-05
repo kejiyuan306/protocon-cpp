@@ -16,7 +16,6 @@
 
 namespace Protocon {
 
-
 Gateway::Gateway(Gateway&& gateway) = default;
 
 Gateway::~Gateway() = default;

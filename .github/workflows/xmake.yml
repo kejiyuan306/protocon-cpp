@@ -21,3 +21,6 @@ jobs:
       - name: Test
         shell: bash
         run: xmake run Tests
+      - name: Benchmark
+        shell: bash
+        run: xmake run Benches

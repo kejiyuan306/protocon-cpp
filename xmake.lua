@@ -12,7 +12,6 @@ target("Protocon")
     set_kind("static")
     add_files("src/*.cpp")
     add_includedirs("include", { public = true })
-    add_ldflags("-pthread")
     add_packages("asio")
     add_headerfiles("include/(Protocon/*.h)")
 

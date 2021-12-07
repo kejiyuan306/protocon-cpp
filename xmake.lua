@@ -17,3 +17,4 @@ target("Protocon")
 
 includes("tests")
 includes("benches")
+includes("examples")

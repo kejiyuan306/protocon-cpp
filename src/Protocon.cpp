@@ -19,7 +19,7 @@ namespace Protocon {
 
 Gateway::Gateway(Gateway&& gateway) = default;
 
-Gateway::~Gateway() = default;
+Gateway::~Gateway() {}
 
 bool Gateway::isOpen() const {
     return mSocket->is_open();

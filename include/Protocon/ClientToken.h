@@ -13,9 +13,13 @@ struct ClientToken {
 
 }  // namespace Protocon
 
+namespace std {
+
 template <>
-struct std::hash<Protocon::ClientToken> {
+struct hash<Protocon::ClientToken> {
     std::size_t operator()(const Protocon::ClientToken& tk) const {
         return std::hash<uint64_t>()(tk.value);
     }
 };
+
+}  // namespace std

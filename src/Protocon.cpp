@@ -122,7 +122,7 @@ void Gateway::send(ClientToken tk, Request&& r, ResponseHandler&& handler) {
 }
 
 Gateway::Gateway(uint16_t apiVersion, uint64_t gatewayId,
-                 std::vector<std::pair<uint16_t, RequestHandler>>&& requestHandlers)
+                 std::vector<std::pair<uint16_t, RequestHandler>> requestHandlers)
     : mApiVersion(apiVersion), mGatewayId(gatewayId) {
     for (auto&& h : requestHandlers)
         mRequestHandlerMap.emplace(h.first, std::move(h.second));

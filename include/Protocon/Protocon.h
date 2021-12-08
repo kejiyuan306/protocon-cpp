@@ -59,7 +59,7 @@ class Gateway {
 
   private:
     Gateway(uint16_t apiVersion, uint64_t gatewayId,
-            std::vector<std::pair<uint16_t, RequestHandler>>&& requestHandlers);
+            std::vector<std::pair<uint16_t, RequestHandler>> requestHandlers);
 
     uint16_t nextCmdId() { return mCmdIdCounter++; }
 
@@ -106,7 +106,7 @@ class GatewayBuilder {
         this->mGatewayId = gatewayId;
         return *this;
     }
-    GatewayBuilder& withRequestHandler(uint16_t type, RequestHandler&& handler) {
+    GatewayBuilder& withRequestHandler(uint16_t type, RequestHandler handler) {
         mRequestHandlers.emplace_back(std::make_pair(type, std::move(handler)));
         return *this;
     }

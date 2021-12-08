@@ -75,7 +75,7 @@ void Gateway::poll() {
             mResponseTx->emplace(
                 RawResponse{
                     r.cmdId,
-                    (handlerIt->second)(ClientToken{clientIdIt->second}, r.request)});
+                    (handlerIt->second)(ClientToken(clientIdIt->second), r.request)});
     }
 
     while (!mResponseRx->empty()) {

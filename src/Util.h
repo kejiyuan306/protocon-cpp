@@ -1,7 +1,5 @@
 #pragma once
 
-#include <bit>
-
 #ifdef _MSC_VER
 
 #include <stdlib.h>

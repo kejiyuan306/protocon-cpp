@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cstdio>
+#include <ctime>
 #include <thread>
 
 bool stop_flag = false;
@@ -14,6 +15,7 @@ int main() {
                 std::printf("Request receivd, data: %s\n", reinterpret_cast<const char*>(r.data.data()));
 
                 return Protocon::Response{
+                    .time = static_cast<uint64_t>(time(nullptr)),
                     .status = 0x00,
                     .data = "{}",
                 };
@@ -27,6 +29,7 @@ int main() {
 
     // 发送一个 0x0001 的客户端请求，并传入回调函数
     gateway.send(tk, Protocon::Request{
+                         .time = static_cast<uint64_t>(time(nullptr)),
                          .type = 0x0001,
                          .data = "{\"msg\": \"Hello world!\"}",
                      },

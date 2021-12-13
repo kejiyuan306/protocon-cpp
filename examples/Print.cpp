@@ -44,7 +44,7 @@ int main() {
             // Send a 0x0001 client request with callback
             gateway.send(tk, Protocon::Request{
                                  static_cast<uint64_t>(time(nullptr)),
-                                 0x0001,
+                                 0x0004,
                                  "{\"msg\": \"Hello world!\"}",
                              },
                          [&stopFlag](const Protocon::Response& response) {

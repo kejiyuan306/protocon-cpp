@@ -98,7 +98,7 @@ void Gateway::poll() {
 
             mSignUpResponseHandler(r.response);
         } else {
-            spdlog::warn("Registration failed, status code: {0:x}", r.response.status);
+            spdlog::warn("Registration failed, status code: {:x}", r.response.status);
         }
     }
 
@@ -108,7 +108,7 @@ void Gateway::poll() {
         if (!r.response.status)
             spdlog::info("Login successed");
         else
-            spdlog::warn("Login failed, status code: {0:x}", r.response.status);
+            spdlog::warn("Login failed, status code: {:x}", r.response.status);
 
         mSignInResponseHandler(r.response);
     }

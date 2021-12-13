@@ -100,7 +100,7 @@ class Sender {
         uint16_t type = Util::BigEndian(r.type);
         if (!write(&type, sizeof(type))) return false;
 
-        uint32_t length = r.data.length();
+        uint32_t length = static_cast<uint32_t>(r.data.length());
         length = Util::BigEndian(length);
         if (!write(&length, sizeof(length))) return false;
         length = Util::BigEndian(length);
@@ -124,7 +124,7 @@ class Sender {
 
         if (!write(&r.status, sizeof(r.status))) return false;
 
-        uint32_t length = r.data.length();
+        uint32_t length = static_cast<uint32_t>(r.data.length());
         length = Util::BigEndian(length);
         if (!write(&length, sizeof(length))) return false;
         length = Util::BigEndian(length);

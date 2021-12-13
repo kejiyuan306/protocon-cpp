@@ -97,9 +97,9 @@ void Gateway::poll() {
             mClientIdTokenMap.emplace(r.clientId, tk);
             sendSignInRequest(r.clientId);
 
-            spdlog::info("注册成功，client Id：%" PRIu64 "", r.clientId);
+            spdlog::info("Registration successed, client Id: %" PRIu64 "", r.clientId);
         } else {
-            spdlog::warn("注册失败，状态码：%02x", r.status);
+            spdlog::warn("Registration failed, status code: %02x", r.status);
         }
     }
 
@@ -107,9 +107,9 @@ void Gateway::poll() {
         RawSignInResponse r = mSignInResponseRx->pop();
 
         if (!r.status)
-            spdlog::info("登录成功");
+            spdlog::info("Login successed");
         else
-            spdlog::warn("登录失败，状态码：%02x", r.status);
+            spdlog::warn("Login failed, status code: %02x", r.status);
     }
 }
 

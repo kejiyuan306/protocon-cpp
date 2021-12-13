@@ -112,14 +112,14 @@ class Receiver {
         if (!read(&mBuf, length)) return false;
 
         mRequestTx.emplace(RawRequest{
-            .cmdId = cmdId,
-            .gatewayId = gatewayId,
-            .clientId = clientId,
-            .apiVersion = apiVersion,
-            .request = Request{
-                .time = time,
-                .type = type,
-                .data = std::string(mBuf.data(), length),
+            cmdId,
+            gatewayId,
+            clientId,
+            apiVersion,
+            Request{
+                time,
+                type,
+                std::string(mBuf.data(), length),
             }});
 
         return true;
@@ -141,11 +141,11 @@ class Receiver {
         if (!read(&mBuf, length)) return false;
 
         mResponseTx.emplace(RawResponse{
-            .cmdId = cmdId,
-            .response = Response{
-                .time = time,
-                .status = status,
-                .data = std::string(mBuf.data(), length),
+            cmdId,
+            Response{
+                time,
+                status,
+                std::string(mBuf.data(), length),
             }});
 
         return true;
@@ -162,9 +162,9 @@ class Receiver {
         if (!read(&status, sizeof(status))) return false;
 
         mSignUpResponseTx.emplace(RawSignUpResponse{
-            .cmdId = cmdId,
-            .clientId = clientId,
-            .status = status});
+            cmdId,
+            clientId,
+            status});
 
         return true;
     }
@@ -176,8 +176,8 @@ class Receiver {
         if (!read(&status, sizeof(status))) return false;
 
         mSignInResponseTx.emplace(RawSignInResponse{
-            .cmdId = cmdId,
-            .status = status});
+            cmdId,
+            status});
 
         return true;
     }

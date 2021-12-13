@@ -9,6 +9,7 @@
 bool stop_flag = false;
 
 int main() {
+    bool sendTrigger = false;
     // Add request handler for command type 0x0001
     auto gateway =
         Protocon::GatewayBuilder(2)
@@ -21,6 +22,11 @@ int main() {
                     "{}",
                 };
             })
+            .withSignInResponseHandler([&sendTrigger](const Protocon::SignInResponse& r) {
+                if (!r.status) {
+                    sendTrigger = true;
+                }
+            })
             .build();
 
     auto tk = gateway.createClientToken();
@@ -30,21 +36,24 @@ int main() {
 
     spdlog::info("Successfully connect to server");
 
-    // Send a 0x0001 client request with callback
-    gateway.send(tk, Protocon::Request{
-                         static_cast<uint64_t>(time(nullptr)),
-                         0x0001,
-                         "{\"msg\": \"Hello world!\"}",
-                     },
-                 [](const Protocon::Response& response) {
-                     spdlog::info("Response received, data: {}", reinterpret_cast<const char*>(response.data.data()));
-                     stop_flag = true;
-                 });
-
     while (gateway.isOpen() && !stop_flag) {
         // Messages received from server will be in a queue
         // We need a poll() each frame to handle these messages
         gateway.poll();
+
+        if (sendTrigger) {
+            // Send a 0x0001 client request with callback
+            gateway.send(tk, Protocon::Request{
+                                 static_cast<uint64_t>(time(nullptr)),
+                                 0x0001,
+                                 "{\"msg\": \"Hello world!\"}",
+                             },
+                         [](const Protocon::Response& response) {
+                             spdlog::info("Response received, data: {}", reinterpret_cast<const char*>(response.data.data()));
+                             stop_flag = true;
+                         });
+            sendTrigger = false;
+        }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }

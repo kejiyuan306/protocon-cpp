@@ -25,7 +25,7 @@ int main() {
     auto tk = gateway.createClientToken(1);
 
     // 尝试连接到服务端
-    if (!gateway.run("127.0.0.1", 8081)) return 1;
+    if (!gateway.run("127.0.0.1", 8082)) return 1;
 
     // 发送一个 0x0001 的客户端请求，并传入回调函数
     gateway.send(tk, Protocon::Request{

@@ -76,6 +76,8 @@ class Sender {
     }
 
     inline bool send(const RawRequest& rawRequest) {
+        spdlog::info("Send request, type: {0:x}, data: {}", rawRequest.request.type, rawRequest.request.data);
+
         const Request& r = rawRequest.request;
 
         uint8_t cmdFlag = 0x00;
@@ -111,6 +113,8 @@ class Sender {
     }
 
     inline bool send(const RawResponse& rawResponse) {
+        spdlog::info("Send reponse, data: {}", rawResponse.response.data);
+
         Response r = rawResponse.response;
 
         uint8_t cmdFlag = 0x80;

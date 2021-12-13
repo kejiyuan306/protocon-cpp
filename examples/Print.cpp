@@ -6,9 +6,8 @@
 #include <ctime>
 #include <thread>
 
-bool stop_flag = false;
-
 int main() {
+    bool stopFlag = false;
     bool sendTrigger = false;
     // Add request handler for command type 0x0001
     auto gateway =
@@ -36,7 +35,7 @@ int main() {
 
     spdlog::info("Successfully connect to server");
 
-    while (gateway.isOpen() && !stop_flag) {
+    while (gateway.isOpen() && !stopFlag) {
         // Messages received from server will be in a queue
         // We need a poll() each frame to handle these messages
         gateway.poll();
@@ -48,9 +47,9 @@ int main() {
                                  0x0001,
                                  "{\"msg\": \"Hello world!\"}",
                              },
-                         [](const Protocon::Response& response) {
+                         [&stopFlag](const Protocon::Response& response) {
                              spdlog::info("Response received, data: {}", reinterpret_cast<const char*>(response.data.data()));
-                             stop_flag = true;
+                             stopFlag = true;
                          });
             sendTrigger = false;
         }

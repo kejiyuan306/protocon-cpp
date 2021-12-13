@@ -22,7 +22,7 @@ int main() {
             })
             .build();
 
-    auto tk = gateway.createClientToken(1);
+    auto tk = gateway.createClientToken();
 
     // 尝试连接到服务端
     if (!gateway.run("127.0.0.1", 8082)) return 1;

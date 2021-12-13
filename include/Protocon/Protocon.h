@@ -3,6 +3,8 @@
 #include <Protocon/ClientToken.h>
 #include <Protocon/Request.h>
 #include <Protocon/Response.h>
+#include <Protocon/SignInResponse.h>
+#include <Protocon/SignUpResponse.h>
 
 #include <atomic>
 #include <cstdint>
@@ -14,6 +16,8 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+
+#include "Protocon/SignInResponse.h"
 
 namespace Protocon {
 
@@ -28,6 +32,10 @@ class ThreadSafeUnorderedMap;
 using RequestHandler = std::function<Response(ClientToken, const Request&)>;
 
 using ResponseHandler = std::function<void(const Response&)>;
+
+using SignUpResponseHandler = std::function<void(const SignUpResponse&)>;
+
+using SignInResponseHandler = std::function<void(const SignInResponse&)>;
 
 class Gateway {
   public:
@@ -59,6 +67,7 @@ class Gateway {
 
   private:
     Gateway(uint16_t apiVersion, uint64_t gatewayId,
+            SignUpResponseHandler SignUpResponseHandler, SignInResponseHandler SignInResponseHandler,
             std::vector<std::pair<uint16_t, RequestHandler>> requestHandlers);
 
     uint16_t nextCmdId() { return mCmdIdCounter++; }
@@ -68,6 +77,8 @@ class Gateway {
 
     uint16_t mApiVersion;
     uint64_t mGatewayId;
+    SignUpResponseHandler mSignUpResponseHandler;
+    SignInResponseHandler mSignInResponseHandler;
     std::unordered_map<uint16_t, RequestHandler> mRequestHandlerMap;
 
     uint64_t mTokenCounter = 0;
@@ -106,6 +117,14 @@ class GatewayBuilder {
         this->mGatewayId = gatewayId;
         return *this;
     }
+    GatewayBuilder& withSignUpResponseHandler(SignUpResponseHandler handler) {
+        mSignUpResponseHandler = handler;
+        return *this;
+    }
+    GatewayBuilder& withSignInResponseHandler(SignInResponseHandler handler) {
+        mSignInResponseHandler = handler;
+        return *this;
+    }
     GatewayBuilder& withRequestHandler(uint16_t type, RequestHandler handler) {
         mRequestHandlers.emplace_back(std::make_pair(type, std::move(handler)));
         return *this;
@@ -114,6 +133,7 @@ class GatewayBuilder {
         return Gateway(
             mApiVersion,
             mGatewayId,
+            mSignUpResponseHandler, mSignInResponseHandler,
             std::move(mRequestHandlers));
     }
 
@@ -122,6 +142,8 @@ class GatewayBuilder {
 
     uint64_t mGatewayId = 0;
 
+    SignUpResponseHandler mSignUpResponseHandler = [](auto r) {};
+    SignInResponseHandler mSignInResponseHandler = [](auto r) {};
     std::vector<std::pair<uint16_t, RequestHandler>> mRequestHandlers;
 };
 

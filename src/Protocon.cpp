@@ -95,6 +95,8 @@ void Gateway::poll() {
             sendSignInRequest(r.response.clientId);
 
             spdlog::info("Registration successed, client Id: {}", r.response.clientId);
+
+            mSignUpResponseHandler(r.response);
         } else {
             spdlog::warn("Registration failed, status code: {0:x}", r.response.status);
         }
@@ -107,6 +109,8 @@ void Gateway::poll() {
             spdlog::info("Login successed");
         else
             spdlog::warn("Login failed, status code: {0:x}", r.response.status);
+
+        mSignInResponseHandler(r.response);
     }
 }
 
@@ -120,8 +124,9 @@ void Gateway::send(ClientToken tk, Request&& r, ResponseHandler&& handler) {
 }
 
 Gateway::Gateway(uint16_t apiVersion, uint64_t gatewayId,
+                 SignUpResponseHandler SignUpResponseHandler, SignInResponseHandler SignInResponseHandler,
                  std::vector<std::pair<uint16_t, RequestHandler>> requestHandlers)
-    : mApiVersion(apiVersion), mGatewayId(gatewayId) {
+    : mApiVersion(apiVersion), mGatewayId(gatewayId), mSignUpResponseHandler(SignUpResponseHandler), mSignInResponseHandler(SignInResponseHandler) {
     for (auto&& h : requestHandlers)
         mRequestHandlerMap.emplace(h.first, std::move(h.second));
 

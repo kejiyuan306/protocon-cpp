@@ -28,6 +28,8 @@ int main() {
     // Try to connect to server
     if (!gateway.run("127.0.0.1", 8082)) return 1;
 
+    spdlog::info("Successfully connect to server");
+
     // Send a 0x0001 client request with callback
     gateway.send(tk, Protocon::Request{
                          static_cast<uint64_t>(time(nullptr)),

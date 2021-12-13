@@ -14,6 +14,7 @@
 #include <thread>
 #include <utility>
 
+#include "Protocon/SignUpResponse.h"
 #include "RawCommand.h"
 #include "ThreadSafeQueue.h"
 #include "Util.h"
@@ -159,8 +160,7 @@ class Receiver {
 
         mSignUpResponseTx.emplace(RawSignUpResponse{
             cmdId,
-            clientId,
-            status});
+            SignUpResponse{clientId, status}});
 
         return true;
     }
@@ -171,7 +171,7 @@ class Receiver {
 
         mSignInResponseTx.emplace(RawSignInResponse{
             cmdId,
-            status});
+            SignInResponse{status}});
 
         return true;
     }

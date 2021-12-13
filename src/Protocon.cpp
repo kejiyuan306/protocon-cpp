@@ -87,26 +87,26 @@ void Gateway::poll() {
     while (!mSignUpResponseRx->empty()) {
         RawSignUpResponse r = mSignUpResponseRx->pop();
 
-        if (!r.status) {
+        if (!r.response.status) {
             auto tk = mAnonymousTokens.back();
             mAnonymousTokens.pop_back();
-            mTokenClientIdMap[tk] = r.clientId;
-            mClientIdTokenMap.emplace(r.clientId, tk);
-            sendSignInRequest(r.clientId);
+            mTokenClientIdMap[tk] = r.response.clientId;
+            mClientIdTokenMap.emplace(r.response.clientId, tk);
+            sendSignInRequest(r.response.clientId);
 
-            spdlog::info("Registration successed, client Id: {}", r.clientId);
+            spdlog::info("Registration successed, client Id: {}", r.response.clientId);
         } else {
-            spdlog::warn("Registration failed, status code: {0:x}", r.status);
+            spdlog::warn("Registration failed, status code: {0:x}", r.response.status);
         }
     }
 
     while (!mSignInResponseRx->empty()) {
         RawSignInResponse r = mSignInResponseRx->pop();
 
-        if (!r.status)
+        if (!r.response.status)
             spdlog::info("Login successed");
         else
-            spdlog::warn("Login failed, status code: {0:x}", r.status);
+            spdlog::warn("Login failed, status code: {0:x}", r.response.status);
     }
 }
 

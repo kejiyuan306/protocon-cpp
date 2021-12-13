@@ -2,8 +2,11 @@
 
 #include <Protocon/Request.h>
 #include <Protocon/Response.h>
+#include <Protocon/SignInResponse.h>
+#include <Protocon/SignUpResponse.h>
 
 #include <cstdint>
+
 
 namespace Protocon {
 
@@ -28,7 +31,7 @@ struct RawSignInRequest {
 
 struct RawSignInResponse {
     uint16_t cmdId;
-    uint8_t status;
+    SignInResponse response;
 };
 
 struct RawSignUpRequest {
@@ -38,8 +41,7 @@ struct RawSignUpRequest {
 
 struct RawSignUpResponse {
     uint16_t cmdId;
-    uint64_t clientId;
-    uint8_t status;
+    SignUpResponse response;
 };
 
 }  // namespace Protocon

@@ -9,6 +9,8 @@ add_requires("asio 1.20.0")
 set_warnings("all", "error")
 set_languages("cxx14")
 
+add_rules("mode.debug", "mode.release")
+
 target("Protocon")
     set_kind("static")
     add_files("src/*.cpp")

@@ -23,7 +23,7 @@ class Socket {
         try {
             mSocket.connect(asio::ip::tcp::endpoint(asio::ip::make_address(host), port));
         } catch (std::exception& e) {
-            spdlog::warn("Failed to connect to server, details: %s", e.what());
+            spdlog::warn("Failed to connect to server, details: {}", e.what());
         }
 
         return true;

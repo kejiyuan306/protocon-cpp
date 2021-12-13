@@ -77,7 +77,7 @@ class Receiver {
         try {
             len = asio::read(mSocket, asio::buffer(buf, n));
         } catch (std::exception& e) {
-            spdlog::warn("Reader error occurs, details: %s", e.what());
+            spdlog::warn("Reader error occurs, details: {}", e.what());
             return false;
         }
         return len;

@@ -94,9 +94,9 @@ void Gateway::poll() {
             mClientIdTokenMap.emplace(r.clientId, tk);
             sendSignInRequest(r.clientId);
 
-            spdlog::info("Registration successed, client Id: %" PRIu64 "", r.clientId);
+            spdlog::info("Registration successed, client Id: {}", r.clientId);
         } else {
-            spdlog::warn("Registration failed, status code: %02x", r.status);
+            spdlog::warn("Registration failed, status code: {0:x}", r.status);
         }
     }
 
@@ -106,7 +106,7 @@ void Gateway::poll() {
         if (!r.status)
             spdlog::info("Login successed");
         else
-            spdlog::warn("Login failed, status code: %02x", r.status);
+            spdlog::warn("Login failed, status code: {0:x}", r.status);
     }
 }
 

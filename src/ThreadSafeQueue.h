@@ -6,7 +6,7 @@
 
 namespace Protocon {
 
-// TODO: 我们可能需要条件变量
+// TODO: We need condition variable here
 template <typename T>
 class ThreadSafeQueue {
   public:

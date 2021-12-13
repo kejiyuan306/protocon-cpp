@@ -54,15 +54,15 @@ class Receiver {
                 } else if (cmdFlag == 0x82) {
                     if (!receiveSignInResponse(cmdId)) break;
                 } else {
-                    spdlog::warn("Unknown command flag, please contact the developer\n");
+                    spdlog::warn("Unknown command flag, please contact the developer");
                     break;
                 }
             }
 
             if (mStopFlag)
-                spdlog::info("Reader closed by shutdown\n");
+                spdlog::info("Reader closed by shutdown");
             else
-                spdlog::warn("Reader closed by error\n");
+                spdlog::warn("Reader closed by error");
         });
     }
 
@@ -77,7 +77,7 @@ class Receiver {
         try {
             len = asio::read(mSocket, asio::buffer(buf, n));
         } catch (std::exception& e) {
-            spdlog::warn("Reader error occurs, details: %s\n", e.what());
+            spdlog::warn("Reader error occurs, details: %s", e.what());
             return false;
         }
         return len;

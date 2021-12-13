@@ -52,9 +52,9 @@ class Sender {
             }
 
             if (mStopFlag)
-                spdlog::info("Writer closed by shutdown\n");
+                spdlog::info("Writer closed by shutdown");
             else
-                spdlog::warn("Writer closed by error\n");
+                spdlog::warn("Writer closed by error");
         });
     }
 
@@ -69,7 +69,7 @@ class Sender {
         try {
             len = asio::write(mSocket, asio::buffer(buf, n));
         } catch (std::exception& e) {
-            spdlog::warn("Writer error occurs, details: %s\n", e.what());
+            spdlog::warn("Writer error occurs, details: %s", e.what());
             return false;
         }
         return len;

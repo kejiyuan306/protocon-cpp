@@ -1,5 +1,7 @@
 #pragma once
 
+#include <spdlog/spdlog.h>
+
 #include <array>
 #include <asio/buffer.hpp>
 #include <asio/ip/tcp.hpp>
@@ -52,15 +54,15 @@ class Receiver {
                 } else if (cmdFlag == 0x82) {
                     if (!receiveSignInResponse(cmdId)) break;
                 } else {
-                    std::printf("致命错误，收到了不合法的命令标记，请联系开发者\n");
+                    spdlog::warn("致命错误，收到了不合法的命令标记，请联系开发者\n");
                     break;
                 }
             }
 
             if (mStopFlag)
-                std::printf("Reader closed by shutdown\n");
+                spdlog::info("Reader closed by shutdown\n");
             else
-                std::printf("Reader closed by error\n");
+                spdlog::warn("Reader closed by error\n");
         });
     }
 
@@ -75,7 +77,7 @@ class Receiver {
         try {
             len = asio::read(mSocket, asio::buffer(buf, n));
         } catch (std::exception& e) {
-            std::fprintf(stderr, "Reader error occurs, details: %s\n", e.what());
+            spdlog::warn("Reader error occurs, details: %s\n", e.what());
             return false;
         }
         return len;

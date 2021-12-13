@@ -1,5 +1,7 @@
 #pragma once
 
+#include <spdlog/spdlog.h>
+
 #include <asio/buffer.hpp>
 #include <asio/ip/tcp.hpp>
 #include <asio/write.hpp>
@@ -50,9 +52,9 @@ class Sender {
             }
 
             if (mStopFlag)
-                std::printf("Writer closed by shutdown\n");
+                spdlog::info("Writer closed by shutdown\n");
             else
-                std::printf("Writer closed by error\n");
+                spdlog::warn("Writer closed by error\n");
         });
     }
 
@@ -67,7 +69,7 @@ class Sender {
         try {
             len = asio::write(mSocket, asio::buffer(buf, n));
         } catch (std::exception& e) {
-            std::fprintf(stderr, "Writer error occurs, details: %s\n", e.what());
+            spdlog::warn("Writer error occurs, details: %s\n", e.what());
             return false;
         }
         return len;

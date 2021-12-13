@@ -1,5 +1,7 @@
 #pragma once
 
+#include <spdlog/spdlog.h>
+
 #include <asio/connect.hpp>
 #include <asio/ip/address.hpp>
 #include <asio/ip/address_v4.hpp>
@@ -21,7 +23,7 @@ class Socket {
         try {
             mSocket.connect(asio::ip::tcp::endpoint(asio::ip::make_address(host), port));
         } catch (std::exception& e) {
-            std::fprintf(stderr, "Failed to connect to server, details: %s\n", e.what());
+            spdlog::warn("Failed to connect to server, details: %s\n", e.what());
         }
 
         return true;

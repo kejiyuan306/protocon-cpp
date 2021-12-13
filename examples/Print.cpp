@@ -1,4 +1,5 @@
 #include <Protocon/Protocon.h>
+#include <spdlog/spdlog.h>
 
 #include <chrono>
 #include <cstdio>
@@ -12,7 +13,7 @@ int main() {
     auto gateway =
         Protocon::GatewayBuilder(2)
             .withRequestHandler(0x0001, [](Protocon::ClientToken tk, const Protocon::Request& r) {
-                std::printf("Request receivd, data: %s\n", reinterpret_cast<const char*>(r.data.data()));
+                spdlog::info("Request receivd, data: %s\n", reinterpret_cast<const char*>(r.data.data()));
 
                 return Protocon::Response{
                     .time = static_cast<uint64_t>(time(nullptr)),
@@ -34,7 +35,7 @@ int main() {
                          .data = "{\"msg\": \"Hello world!\"}",
                      },
                  [](const Protocon::Response& response) {
-                     std::printf("Response received, data: %s\n", reinterpret_cast<const char*>(response.data.data()));
+                     spdlog::info("Response received, data: %s\n", reinterpret_cast<const char*>(response.data.data()));
                      stop_flag = true;
                  });
 

@@ -1,4 +1,5 @@
 #include <Protocon/Protocon.h>
+#include <spdlog/spdlog.h>
 
 #include <array>
 #include <chrono>
@@ -96,9 +97,9 @@ void Gateway::poll() {
             mClientIdTokenMap.emplace(r.clientId, tk);
             sendSignInRequest(r.clientId);
 
-            printf("注册成功，client Id：%" PRIu64 "\n", r.clientId);
+            spdlog::info("注册成功，client Id：%" PRIu64 "\n", r.clientId);
         } else {
-            printf("注册失败，状态码：%02x\n", r.status);
+            spdlog::warn("注册失败，状态码：%02x\n", r.status);
         }
     }
 
@@ -106,9 +107,9 @@ void Gateway::poll() {
         RawSignInResponse r = mSignInResponseRx->pop();
 
         if (!r.status)
-            printf("登录成功\n");
+            spdlog::info("登录成功\n");
         else
-            printf("登录失败，状态码：%02x\n", r.status);
+            spdlog::warn("登录失败，状态码：%02x\n", r.status);
     }
 }
 

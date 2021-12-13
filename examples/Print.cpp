@@ -9,7 +9,7 @@
 bool stop_flag = false;
 
 int main() {
-    // 添加 0x0001 的服务端请求处理器
+    // Add request handler for command type 0x0001
     auto gateway =
         Protocon::GatewayBuilder(2)
             .withRequestHandler(0x0001, [](Protocon::ClientToken tk, const Protocon::Request& r) {
@@ -25,10 +25,10 @@ int main() {
 
     auto tk = gateway.createClientToken();
 
-    // 尝试连接到服务端
+    // Try to connect to server
     if (!gateway.run("127.0.0.1", 8082)) return 1;
 
-    // 发送一个 0x0001 的客户端请求，并传入回调函数
+    // Send a 0x0001 client request with callback
     gateway.send(tk, Protocon::Request{
                          static_cast<uint64_t>(time(nullptr)),
                          0x0001,
@@ -40,8 +40,8 @@ int main() {
                  });
 
     while (gateway.isOpen() && !stop_flag) {
-        // 从服务端收到的报文会放在队列中
-        // 只有在 poll 的时候才会调用各个回调处理相应的报文
+        // Messages received from server will be in a queue
+        // We need a poll() each frame to handle these messages
         gateway.poll();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(200));

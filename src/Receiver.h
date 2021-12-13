@@ -84,7 +84,6 @@ class Receiver {
     }
 
     inline bool receiveRequest(uint16_t cmdId) {
-        // 请求。
         uint64_t gatewayId;
         if (!read(&gatewayId, sizeof(gatewayId))) return false;
         gatewayId = Util::BigEndian(gatewayId);
@@ -126,7 +125,6 @@ class Receiver {
     }
 
     inline bool receiveResponse(uint16_t cmdId) {
-        // 响应。
         uint64_t time;
         if (!read(&time, sizeof(time))) return false;
         time = Util::BigEndian(time);
@@ -152,8 +150,6 @@ class Receiver {
     }
 
     inline bool receiveSignUpResponse(uint16_t cmdId) {
-        // 注册响应
-
         uint64_t clientId;
         if (!read(&clientId, sizeof(clientId))) return false;
         clientId = Util::BigEndian(clientId);
@@ -170,8 +166,6 @@ class Receiver {
     }
 
     inline bool receiveSignInResponse(uint16_t cmdId) {
-        // 登录响应
-
         uint8_t status;
         if (!read(&status, sizeof(status))) return false;
 

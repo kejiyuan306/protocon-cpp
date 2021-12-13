@@ -48,11 +48,9 @@ bool Gateway::run(const char* host, uint16_t port) {
         *mSignUpRequestTx, *mSignInRequestTx);
     mSender->run();
 
-    // 发送登录请求
     for (const auto& it : mClientIdTokenMap)
         sendSignInRequest(it.first);
 
-    // 发送注册请求
     for (decltype(mAnonymousTokens)::size_type i = 0; i < mAnonymousTokens.size(); i++)
         sendSignUpRequest();
 
@@ -90,7 +88,6 @@ void Gateway::poll() {
         RawSignUpResponse r = mSignUpResponseRx->pop();
 
         if (!r.status) {
-            // 注册成功
             auto tk = mAnonymousTokens.back();
             mAnonymousTokens.pop_back();
             mTokenClientIdMap[tk] = r.clientId;

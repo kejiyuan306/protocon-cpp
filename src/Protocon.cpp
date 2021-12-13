@@ -124,6 +124,16 @@ Gateway::Gateway(uint16_t apiVersion, uint64_t gatewayId,
     : mApiVersion(apiVersion), mGatewayId(gatewayId) {
     for (auto&& h : requestHandlers)
         mRequestHandlerMap.emplace(h.first, std::move(h.second));
+
+    mRequestRx = std::make_unique<ThreadSafeQueue<RawRequest>>();
+    mResponseRx = std::make_unique<ThreadSafeQueue<RawResponse>>();
+    mSignUpResponseRx = std::make_unique<ThreadSafeQueue<RawSignUpResponse>>();
+    mSignInResponseRx = std::make_unique<ThreadSafeQueue<RawSignInResponse>>();
+
+    mRequestTx = std::make_unique<ThreadSafeQueue<RawRequest>>();
+    mResponseTx = std::make_unique<ThreadSafeQueue<RawResponse>>();
+    mSignUpRequestTx = std::make_unique<ThreadSafeQueue<RawSignUpRequest>>();
+    mSignInRequestTx = std::make_unique<ThreadSafeQueue<RawSignInRequest>>();
 }
 
 void Gateway::sendSignUpRequest() {

@@ -54,7 +54,7 @@ class Receiver {
                 } else if (cmdFlag == 0x82) {
                     if (!receiveSignInResponse(cmdId)) break;
                 } else {
-                    spdlog::warn("致命错误，收到了不合法的命令标记，请联系开发者\n");
+                    spdlog::warn("Unknown command flag, please contact the developer\n");
                     break;
                 }
             }

@@ -135,6 +135,8 @@ class Sender {
     }
 
     inline bool send(const RawSignUpRequest& r) {
+        spdlog::info("Send sign up request");
+
         uint8_t cmdFlag = 0x01;
         if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
 
@@ -148,6 +150,8 @@ class Sender {
     }
 
     inline bool send(const RawSignInRequest& r) {
+        spdlog::info("Send sign in request, client ID: {}", r.clientId);
+
         uint8_t cmdFlag = 0x02;
         if (!write(&cmdFlag, sizeof(cmdFlag))) return false;
 

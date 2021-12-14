@@ -81,7 +81,8 @@ void Gateway::poll() {
         RawResponse r = mResponseRx->pop();
 
         auto it = mRequestResponseHandlerMap.find(r.cmdId);
-        mRequestResponseHandlerMap.erase(it)->second(r.response);
+        it->second(r.response);
+        mRequestResponseHandlerMap.erase(it);
     }
 
     while (!mSignUpResponseRx->empty()) {

@@ -1,5 +1,5 @@
 set_project("Protocon")
-set_version("2.5.0", {build = "%Y%m%d%H%M"})
+set_version("2.5.1", {build = "%Y%m%d%H%M"})
 
 set_xmakever("2.5.9")
 

@@ -76,7 +76,7 @@ class Sender {
     }
 
     inline bool send(const RawRequest& rawRequest) {
-        spdlog::info("Send request, type: {:x}, data: {}", rawRequest.request.type, rawRequest.request.data);
+        spdlog::info("Send request, type: 0x{:x}, data: {}", rawRequest.request.type, rawRequest.request.data);
 
         const Request& r = rawRequest.request;
 

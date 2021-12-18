@@ -1,4 +1,4 @@
-target("Print")
+target("Heartbeat")
     set_kind("binary")
     set_default("false")
     add_deps("Protocon")

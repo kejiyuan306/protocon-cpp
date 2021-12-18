@@ -58,6 +58,7 @@ bool Gateway::run(const char* host, uint16_t port) {
 }
 
 void Gateway::stop() {
+    mSocket->shutdown();
     mSocket.reset();
 
     mReceiver->stop();

@@ -7,6 +7,7 @@
 #include <asio/ip/address_v4.hpp>
 #include <asio/ip/tcp.hpp>
 #include <cstdio>
+#include <exception>
 
 namespace Protocon {
 
@@ -25,6 +26,16 @@ class Socket {
         } catch (std::exception& e) {
             spdlog::warn("Failed to connect to server, details: {}", e.what());
             return false;
+        }
+
+        return true;
+    }
+
+    bool shutdown() {
+        try {
+            mSocket.shutdown(asio::socket_base::shutdown_both);
+        } catch (std::exception& e) {
+            spdlog::warn("Failed to shutdown the socket, details: {}", e.what());
         }
 
         return true;

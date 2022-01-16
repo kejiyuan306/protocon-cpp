@@ -19,6 +19,6 @@ target("Protocon")
     add_packages("asio")
     add_headerfiles("include/(Protocon/*.h)")
 
--- includes("tests")
--- includes("benches")
+includes("tests")
+includes("benches")
 includes("examples")

@@ -5,4 +5,7 @@ target("Benches")
     set_default(false)
     add_deps("Protocon")
     add_files("*.cpp")
+    if is_plat("windows") then
+        add_ldflags("/subsystem:console")
+    end
     add_packages("benchmark")

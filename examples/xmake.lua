@@ -1,6 +1,6 @@
 target("Heartbeat")
     set_kind("binary")
-    set_default("false")
+    set_default(false)
     add_deps("Protocon")
     add_files("Heartbeat.cpp")
     add_ldflags("-pthread")

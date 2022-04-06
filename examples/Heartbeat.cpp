@@ -13,7 +13,7 @@ int main() {
     auto gateway =
         Protocon::GatewayBuilder(2)
             .withRequestHandler(0x0001, [](Protocon::ClientToken tk, const Protocon::Request& r) {
-                spdlog::info("Request receivd, data: {}", reinterpret_cast<const char*>(r.data.data()));
+                spdlog::info("Request receivd, data: {}", r.data.c_str());
 
                 return Protocon::Response{
                     static_cast<uint64_t>(time(nullptr)),
@@ -48,7 +48,7 @@ int main() {
                                  "{\"msg\": \"Hello world!\"}",
                              },
                          [&stopFlag](const Protocon::Response& response) {
-                             spdlog::info("Response received, data: {}", reinterpret_cast<const char*>(response.data.data()));
+                             spdlog::info("Response received, data: {}", response.data.c_str());
                              stopFlag = true;
                          });
             sendTrigger = false;
